@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Arrival Times</title>
+    <link rel="icon" type="image/png" href="./busicon.png">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #ffffff;
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+        }
+        h2 {
+            background-color: #e74c3c; /* Red theme */
+            color: #ffffff;
+            padding: 15px;
+            margin: 0;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        #searchByName,
+        #customStopId {
+            margin-top: 20px;
+        }
+
+        label {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        input {
+            width: 60%;
+            padding: 8px;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 8px;
+            font-size: 1em;
+            background-color: #e74c3c; /* Red theme */
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #searchResults,
+        #stopInfo,
+        #timestamp {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #ffffff;
+            color: #333;
+            border-radius: 5px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #e74c3c; /* Red theme */
+            color: #ffffff;
+        }
+
+        td a {
+            color: #e74c3c; /* Red theme */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        td a:hover {
+            color: #c0392b; /* Darker red */
+        }
+
+        .stopHeader {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stopCoordinates a {
+            color: #e74c3c; /* Red theme */
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .stopCoordinates a:hover {
+            color: #c0392b; /* Darker red */
+        }
+
+        .lineSymbol {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #e74c3c; /* Red theme */
+            margin-right: 5px;
+            text-align: center;
+            line-height: 20px;
+            color: #ffffff;
+        }
+
+        .stopInfoTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px;
+        }
+
+        .stopInfoTable th,
+        .stopInfoTable td {
+            padding: 12px;
+            border-style: none;
+            text-align: left;
+        }
+        .stopInfoTable th a {
+            color: #ffffff; /* White color for the link */
+            text-decoration: none; /* Remove underline */
+        }
+
+        .lineSymbol {
+            display: inline-block;
+            width: 38px; /* Adjust the width as needed */
+            height: 38px; /* Adjust the height as needed */
+            border-radius: 15%;
+            background-color: #e74c3c; /* Red theme */
+            margin-right: 5px;
+            text-align: center;
+            line-height: 38px;
+            color: #ffffff;
+            font-size: 12px; /* Adjust the font size as needed */
+            
+        }
+
+        #updateStatus {
+            font-size: 1.2em;
+            margin-top: 10px;
+            color: #27ae60; /* Green */
+        }
+
+        /* Mobile Styles */
+        @media only screen and (max-width: 600px) {
+            input {
+                width: 100%;
+                margin-bottom: 10px;
+            }
+            body {
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Bus Arrival Times</h2>
+
+    <div id="searchByName">
+        <label for="stopNameInput">Search by Stop Name:</label>
+        <input type="text" id="stopNameInput" placeholder="Enter Stop Name">
+        <button onclick="searchBusStop()">Search</button>
+    </div>
+    <div id="loadingText"></div>
+
+    <div id="customStopId">
+        <label for="stopIdInput">Custom Stop ID:</label>
+        <input type="text" id="stopIdInput" placeholder="Enter Stop ID">
+        <button onclick="fetchBusData()">Update</button>
+        <div id="updateStatus">Search a bus stop or enter a bus stop ID</div>
+    </div>
+
+    <div id="searchResults"></div>
+    <div id="stopInfo"></div>
+    <p id="timestamp"></p>
+    <table id="busTable">
+        <thead>
+            <tr>
+                <th colspan="4" id="stopInfoHeader"></th>
+            </tr>
+            <tr>
+                <th>Bus Line</th>
+                <th>Arrival Time</th>
+                <th>Destinations</th>
+                <th>Location</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be inserted here dynamically -->
+        </tbody>
+    </table>    
+
+<script>
+
+var loadingTextInterval; // Variable to store the interval ID
+var loadingTextInterval; // Variable to store the interval ID
+
+function showLoadingText() {
+    // Show the loading text with animation
+    var loadingText = $('#loadingText');
+    loadingText.text('Querying database');
+    var dots = 1;
+
+    function animateDots() {
+        loadingText.text('Querying database' + '.'.repeat(dots));
+        dots = (dots % 5) + 1; // Cycle through 1 to 5 dots
+    }
+
+    // Set an interval to update the dots
+    loadingTextInterval = setInterval(animateDots, 500);
+}
+
+function hideLoadingText() {
+    // Hide the loading text and clear the interval
+    $('#loadingText').text('');
+    clearInterval(loadingTextInterval);
+}
+
+function searchBusStop() {
+    // Show loading text
+    showLoadingText();
+
+    // Get the stop name entered by the user
+    var stopName = $('#stopNameInput').val().trim();
+
+    // Fetch bus stops data only if a name is provided
+    if (stopName) {
+        // API Call to get all bus stops
+        $.ajax({
+            url: 'https://apisvt.avanzagrupo.com/lineas/getParadas',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                // Filter stops based on the entered name
+                var matchingStops = response.data.paradas.filter(function(stop) {
+                    return stop.ds.toLowerCase().includes(stopName.toLowerCase());
+                });
+
+                // Display matching stops
+                displayMatchingStops(matchingStops);
+
+                // Hide loading text when the search is complete
+                hideLoadingText();
+            },
+            error: function() {
+                // Display error message
+                alert('Error fetching bus stop data. Please try again later.');
+
+                // Hide loading text when there's an error
+                hideLoadingText();
+            }
+        });
+    } else {
+        // Display message if no name is provided
+        alert('Please enter a Stop Name for search.');
+
+        // Hide loading text when the search is complete (even in case of an error)
+        hideLoadingText();
+    }
+}
+   
+    function displayMatchingStops(stops) {
+        // Clear previous data
+        $('#stopInfo').empty();
+
+        // Display matching stops in a table
+        stops.forEach(function(stop) {
+            var stopInfo = $('<div>');
+
+            // Table for Stop ID, Name, and Location link
+            var table = $('<table>').addClass('stopInfoTable');
+
+            // Create a new row for the clickable header
+            var clickableHeaderRow = $('<tr>');
+            var headerLink = $('<a>').attr('href', '#')
+                .click(function() {
+                    // Auto-fill the custom Stop ID field and update the page
+                    $('#stopIdInput').val(stop.cod);
+                    fetchBusData();
+                })
+                .text('Stop ID: ' + stop.cod + ' - ' + stop.ds);
+            clickableHeaderRow.append($('<th>').append(headerLink));
+
+            var locationLinkRow = $('<tr>').append($('<td>').append($('<a>')
+                .attr('href', 'https://www.google.com/maps?q=' + stop.coordinates[0] + ',' + stop.coordinates[1])
+                .addClass('stopCoordinates')
+                .text('View on Map')));
+
+            // Create a new row for line symbols
+            var linesRow = $('<tr>');
+
+            // Display line symbols in red-colored circles
+            stop.lines.forEach(function(line) {
+                var lineSymbol = $('<div>').addClass('lineSymbol').text(line);
+                linesRow.append($(lineSymbol));
+            });
+
+            table.append(clickableHeaderRow, locationLinkRow, linesRow);
+            stopInfo.append(table);
+
+            stopInfo.append('<hr>');
+            $('#stopInfo').append(stopInfo);
+        });
+    }
+
+    //Function to give a correct format to the dates
+    function formatDate(timestamp) {
+        var year = timestamp.substr(0, 4);
+        var month = timestamp.substr(4, 2);
+        var day = timestamp.substr(6, 2);
+        return year + '-' + month + '-' + day;
+    }
+
+    function fetchBusData() {
+        // Get custom stop ID
+        var customStopId = $('#stopIdInput').val().trim();
+        if (!customStopId) {
+            alert('Please enter a Stop ID.');
+            return;
+        }
+
+
+        // API Call
+        $.ajax({
+            url: 'https://apisvt.avanzagrupo.com/lineas/getTraficosParada?empresa=10-21&parada=' + customStopId + '&find=',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                // Clear previous data
+                $('#busTable tbody').empty();
+
+                // Update table header with stop info
+                $('#stopInfoHeader').text('Stop ID: ' + response.data.parada.cod + ' - ' + response.data.parada.ds);
+
+                // Loop through bus data and add rows to the table
+                $.each(response.data.traficos, function(index, bus) {
+                    // Create a new table row
+                    var row = $('<tr>');
+
+                    // Append data to the row
+                    row.append($('<td>').text(bus.coLinea));
+                    row.append($('<td>').text(bus.quedan));
+                    row.append($('<td>').text(bus.dsDestino));
+                    row.append($('<td>').append($('<a>').attr('href', 'https://www.google.com/maps?q=' + bus.lat + ',' + bus.lon).text('View on Map')));
+
+                    // Append the row to the table
+                    $('#busTable tbody').append(row);
+                });
+
+                // Display timestamp information
+                $('#timestamp').text('Date: ' + formatDate(response.fxSistema) + ' Last update took: ' + response.time + ' ms');
+
+                // Update status to "Up to date" with green checkmark
+                $('#updateStatus').text('Up to date ✅').css('color', '#27ae60'); // Green color
+            },
+            error: function() {
+                // Display error message
+                alert('Error fetching data. Please try again later.');
+            }
+        });
+    }
+
+    // Update timestamp while refreshing
+    setInterval(function() {
+        // Fetch bus data only if Stop ID is provided
+        if ($('#stopIdInput').val().trim()) {
+            // Show "Updating..." status
+            $('#updateStatus').text('Updating...').css('color', '#333'); // Default color
+
+            // Fetch bus data
+            fetchBusData();
+        }
+    }, 5000);
+</script>
+
+</body>
+</html>
