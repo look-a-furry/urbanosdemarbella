@@ -204,6 +204,11 @@
             background-color: #555;
         }
 
+        #legaltext{
+            text-align: center;
+            font-size: 5;    
+        }
+
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
             input {
@@ -256,6 +261,14 @@
             <!-- Data will be inserted here dynamically -->
         </tbody>
     </table>    
+
+
+
+    <p id="legaltext">Urbanos de marbella V1.0, Copyright (C) 2024 - Alexander <br>
+        Urbanos de marbella comes with ABSOLUTELY NO WARRANTY; for details view <a href="./LICENSE">GNU Licence</a>. <br>
+        This is free software, and you are welcome to redistribute it under certain conditions; view <a href="./LICENSE">GNU Licence</a> for details.</p>
+
+
 
 <script>
 
@@ -477,7 +490,7 @@
             });
 
             favoriteStopInfo.append($('<h4>').append(favoriteLink));
-            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId + ' - Original Stop Name: ' + favorite.defaultStopName));
+            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId));
             favoriteStopInfo.append(removeButton);
             favoritesDialog.append(favoriteStopInfo);
         });
