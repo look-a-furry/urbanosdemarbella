@@ -37,7 +37,7 @@
         }
 
         input {
-            width: 60%;
+            width: 40%;
             padding: 8px;
             font-size: 1em;
             margin: 10px;
@@ -170,8 +170,8 @@
             transform: translate(-50%, -50%);
             background-color: white;
             padding: 20px;
-            border: 2px solid #fd3131;
-            border-radius: 15px;
+            border: 2px solid #847b00;
+            border-radius: 10px;
             z-index: 9999;
             max-height: 80%;
             overflow-y: auto;
@@ -204,6 +204,11 @@
             background-color: #555;
         }
 
+        .blur {
+            filter: blur(5px);
+            transition: filter 0.3s ease;
+        }
+
         #legaltext{
             text-align: center;
             font-size: 5;    
@@ -212,7 +217,7 @@
         /* Mobile Styles */
         @media only screen and (max-width: 600px) {
             input {
-                width: 100%;
+                width: 75%;
                 margin-bottom: 10px;
             }
             body {
@@ -267,8 +272,6 @@
     <p id="legaltext">Urbanos de marbella V1.0, Copyright (C) 2024 - Alexander <br>
         Urbanos de marbella comes with ABSOLUTELY NO WARRANTY; for details view <a href="./LICENSE">GNU Licence</a>. <br>
         This is free software, and you are welcome to redistribute it under certain conditions; view <a href="./LICENSE">GNU Licence</a> for details.</p>
-
-
 
 <script>
 
@@ -459,16 +462,16 @@
 
     // Show favourites
     function showFavorites() {
-    // Close any existing favorites dialog with fade-out animation
-    $('.favoritesDialog').fadeOut(300, function () {
-        $(this).remove();
+        // Close any existing favorites dialog
+        $('.favoritesDialog').remove();
+
+
 
         // Get favorites from the cookie
         var favorites = JSON.parse(getCookie('favorites')) || [];
 
-        // Create a custom dialog for displaying favorites with fade-in animation
-        var favoritesDialog = $('<div>').addClass('favoritesDialog').hide();
-        favoritesDialog.append($('<h3>').text('Favorites ★'));
+        // Create a custom dialog for displaying favorites
+        var favoritesDialog = $('<div>').addClass('favoritesDialog');
 
         // Display each favorite stop with a clickable link and remove button
         favorites.forEach(function (favorite) {
@@ -476,45 +479,47 @@
             var favoriteLink = $('<a>').attr('href', '#')
                 .text(favorite.favoriteName)
                 .click(function () {
-                    // Close the favorites dialog with fade-out animation
+                    // Close the favorites dialog
                     favoritesDialog.fadeOut(300, function () {
-                        $(this).remove();
-
-                        // Fill the "Custom Stop ID" field and update the page
-                        $('#stopIdInput').val(favorite.stopId);
-                        fetchBusData();
+                        favoritesDialog.remove();
                     });
+
+                    // Fill the "Custom Stop ID" field and update the page
+                    $('#stopIdInput').val(favorite.stopId);
+                    fetchBusData();
                 });
 
             var removeButton = $('<button>').text('Remove').click(function () {
                 // Remove the specific favorite from the list and update the cookie
                 removeFavorite(favorite.stopId);
-
-                // Close and reopen the favorites panel with fade-out and fade-in animations
+                // Close and reopen the favorites panel
                 showFavorites();
             });
 
+            favoriteStopInfo.append($('<h3>').text('Your favourite bus stops'));
+
             favoriteStopInfo.append($('<h4>').append(favoriteLink));
-            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId + ' - Original Stop Name: ' + favorite.defaultStopName));
+            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId ));
             favoriteStopInfo.append(removeButton);
             favoritesDialog.append(favoriteStopInfo);
         });
 
-        // Add a close button with fade-out animation
+        // Add a close button
         var closeButton = $('<button>').text('Close').click(function () {
+            // Fade out the favorites dialog and remove the blur effect
             favoritesDialog.fadeOut(300, function () {
-                $(this).remove();
+                favoritesDialog.remove();
+                $('body').removeClass('blur');
             });
         });
         favoritesDialog.append(closeButton);
 
-        // Append the dialog to the body and fade it in
+        // Append the dialog to the body and apply fade-in animation
         $('body').append(favoritesDialog);
-        favoritesDialog.fadeIn(300);
-    });
-}
+        favoritesDialog.hide().fadeIn(300);
+    }
 
-    // Function to remove a favorite from the list
+    // Function to remove a specific favorite from the list
     function removeFavorite(stopId) {
         var favorites = JSON.parse(getCookie('favorites')) || [];
         var updatedFavorites = favorites.filter(function (favorite) {
