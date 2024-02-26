@@ -40,7 +40,7 @@
             width: 60%;
             padding: 8px;
             font-size: 1em;
-            margin-right: 10px;
+            margin: 10px;
             border-radius: 15px;
         }
 
@@ -457,15 +457,17 @@
         document.cookie = name + '=' + value + expires + '; path=/';
     }
 
+    // Show favourites
     function showFavorites() {
-        // Close any existing favorites dialog
-        $('.favoritesDialog').remove();
+    // Close any existing favorites dialog with fade-out animation
+    $('.favoritesDialog').fadeOut(300, function () {
+        $(this).remove();
 
         // Get favorites from the cookie
         var favorites = JSON.parse(getCookie('favorites')) || [];
 
-        // Create a custom dialog for displaying favorites
-        var favoritesDialog = $('<div>').addClass('favoritesDialog');
+        // Create a custom dialog for displaying favorites with fade-in animation
+        var favoritesDialog = $('<div>').addClass('favoritesDialog').hide();
         favoritesDialog.append($('<h3>').text('Favorites ★'));
 
         // Display each favorite stop with a clickable link and remove button
@@ -474,36 +476,43 @@
             var favoriteLink = $('<a>').attr('href', '#')
                 .text(favorite.favoriteName)
                 .click(function () {
-                    // Close the favorites dialog
-                    favoritesDialog.remove();
+                    // Close the favorites dialog with fade-out animation
+                    favoritesDialog.fadeOut(300, function () {
+                        $(this).remove();
 
-                    // Fill the "Custom Stop ID" field and update the page
-                    $('#stopIdInput').val(favorite.stopId);
-                    fetchBusData();
+                        // Fill the "Custom Stop ID" field and update the page
+                        $('#stopIdInput').val(favorite.stopId);
+                        fetchBusData();
+                    });
                 });
 
             var removeButton = $('<button>').text('Remove').click(function () {
                 // Remove the specific favorite from the list and update the cookie
                 removeFavorite(favorite.stopId);
-                // Close and reopen the favorites panel
+
+                // Close and reopen the favorites panel with fade-out and fade-in animations
                 showFavorites();
             });
 
             favoriteStopInfo.append($('<h4>').append(favoriteLink));
-            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId));
+            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId + ' - Original Stop Name: ' + favorite.defaultStopName));
             favoriteStopInfo.append(removeButton);
             favoritesDialog.append(favoriteStopInfo);
         });
 
-        // Add a close button
+        // Add a close button with fade-out animation
         var closeButton = $('<button>').text('Close').click(function () {
-            favoritesDialog.remove();
+            favoritesDialog.fadeOut(300, function () {
+                $(this).remove();
+            });
         });
         favoritesDialog.append(closeButton);
 
-        // Append the dialog to the body
+        // Append the dialog to the body and fade it in
         $('body').append(favoritesDialog);
-    }
+        favoritesDialog.fadeIn(300);
+    });
+}
 
     // Function to remove a favorite from the list
     function removeFavorite(stopId) {
