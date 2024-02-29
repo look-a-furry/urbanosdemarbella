@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Arrival Times</title>
-    <link rel="icon" type="image/png" href="./bus.png">
+    <link rel="icon" type="image/png" href="./img/bus.png">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
         body {
@@ -281,10 +281,10 @@
                 <th colspan="4" id="stopInfoHeader"></th>
             </tr>
             <tr>
-                <th> <img src="./bus.png" alt="Bus Line" id="icon"> </th>
-                <th> <img src="./clock.png" alt="Arrival Time" id="icon"> </th>
-                <th> <img src="./destination.png" alt="destination" id="icon"> </th>
-                <th> <img src="./map.png" alt="Location" id="icon"> </th>
+                <th> <img src="./img/bus.png" alt="Bus Line" id="icon"> </th>
+                <th> <img src="./img/clock.png" alt="Arrival Time" id="icon"> </th>
+                <th> <img src="./img/destination.png" alt="destination" id="icon"> </th>
+                <th> <img src="./img/img/map.png" alt="Location" id="icon"> </th>
             </tr>
         </thead>
         <tbody>
@@ -295,8 +295,8 @@
 
 
     <p id="legaltext">Urbanos de marbella (v1.0.1), Copyright (C) 2024 - Alexander <br>
-        Urbanos de marbella comes with ABSOLUTELY NO WARRANTY; for details view <a href="./LICENSE">GNU Licence</a>. <br>
-        This is free software, and you are welcome to redistribute it under certain conditions; view <a href="./LICENSE">GNU Licence</a> for details.</p>
+        Urbanos de marbella comes with ABSOLUTELY NO WARRANTY; for details view <a href="./img/LICENSE">GNU Licence</a>. <br>
+        This is free software, and you are welcome to redistribute it under certain conditions; view <a href="./img/LICENSE">GNU Licence</a> for details.</p>
 
 
 
@@ -512,7 +512,7 @@
 
                     // Create an image element and set its attributes
                     var extLinkImg = $('<img>').attr({
-                        src: './extlink.png',  // Adjust the path to the actual location of your image
+                        src: './img/extlink.png',  // Adjust the path to the actual location of your image
                         alt: 'External Link',
                         width: '13',  // Set the width as needed
                         height: '13'  // Set the height as needed
@@ -688,7 +688,7 @@
                     row.append($('<td>').text(bus.coLinea));
                     row.append($('<td>').text(bus.quedan));
                     row.append($('<td>').text(bus.dsDestino));
-                        var mapImage = $('<img>').attr('src', './pushpin.png').attr('alt', 'View on Map').attr('id', 'icon');
+                        var mapImage = $('<img>').attr('src', './img/pushpin.png').attr('alt', 'View on Map').attr('id', 'icon');
                     row.append($('<td>').append($('<a>').attr('href', 'https://www.google.com/maps?q=' + bus.lat + ',' + bus.lon).append(mapImage)));
 
                     // Append the row to the table
