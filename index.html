@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Arrival Times</title>
-    <link rel="icon" type="image/png" href="./busicon.png">
+    <link rel="icon" type="image/png" href="./bus.png">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
     <style>
         body {
@@ -37,14 +37,26 @@
         }
 
         input {
-            width: 40%;
+            font-style: italic;
+            width: 60%;
             padding: 8px;
             font-size: 1em;
-            margin: 10px;
-            border-radius: 15px;
+            margin-right: 10px;
+            border-radius: 10px;
         }
 
         button {
+            padding: 8px;
+            font-size: 1em;
+            background-color: #FF0000; /* Red theme */
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #largebutton{
+            width: 100%;
             padding: 8px;
             font-size: 1em;
             background-color: #FF0000; /* Red theme */
@@ -75,12 +87,13 @@
         td {
             border: 1px solid #ddd;
             padding: 12px;
-            text-align: left;
+            text-align: center;
         }
 
         th {
             background-color: #FF0000; /* Red theme */
             color: #ffffff;
+            
         }
 
         td a {
@@ -132,7 +145,6 @@
         .stopInfoTable td {
             padding: 12px;
             border-style: none;
-            text-align: left;
         }
         .stopInfoTable th a {
             color: #ffffff; /* White color for the link */
@@ -170,8 +182,8 @@
             transform: translate(-50%, -50%);
             background-color: white;
             padding: 20px;
-            border: 2px solid #847b00;
-            border-radius: 10px;
+            border: 2px solid #fd3131;
+            border-radius: 15px;
             z-index: 9999;
             max-height: 80%;
             overflow-y: auto;
@@ -204,24 +216,31 @@
             background-color: #555;
         }
 
-        .blur {
-            filter: blur(5px);
-            transition: filter 0.3s ease;
-        }
-
         #legaltext{
             text-align: center;
-            font-size: 5;    
+            font-size: 12px;    
+        }
+
+        #icon{
+            width: 25px;
+            height: 25px;
         }
 
         /* Mobile Styles */
-        @media only screen and (max-width: 600px) {
+        @media only screen and (max-width: 800px) {
             input {
-                width: 75%;
+                width: 60%;
                 margin-bottom: 10px;
             }
             body {
-                margin: 10px;
+                margin: 0px;
+            }
+            #timestamp {
+            background-color: #ffffff;
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            text-align: center;
             }
         }
     </style>
@@ -235,19 +254,25 @@
         <input type="text" id="stopNameInput" placeholder="Enter Stop Name">
         <button onclick="searchBusStop()">Update</button>
     </div>
-    <div id="loadingText"></div>
-
-    <div id="stopInfo"></div>
 
     <div id="customStopId">
         <label for="stopIdInput">Do you know the ID?:</label>
         <input type="text" id="stopIdInput" placeholder="Enter Stop ID">
         <button onclick="fetchBusData()">Update</button>
     </div>
-<br>
-    <button onclick="showFavorites()">View Favorites ★</button>
+    <br>
+    <button id="largebutton" onclick="showFavorites()">View Favorites ★</button>
+
+    <br> <br>
+    <button id="largebutton" onclick="searchNearbyStops()">Search Nearby Stops ⎆</button>
+    <p style="font-size: 12px;">(Location permission requiered)</p>
+
+    <div id="loadingText"></div>
+    <div id="stopInfo"></div>
 
     <p id="timestamp"></p>
+
+    <button id="largebutton" onclick="fetchBusData()">Force Update</button>
 
     <div id="updateStatus">Search a bus stop or enter a bus stop ID</div>
     <table id="busTable">
@@ -256,10 +281,10 @@
                 <th colspan="4" id="stopInfoHeader"></th>
             </tr>
             <tr>
-                <th>Bus Line</th>
-                <th>Arrival Time</th>
-                <th>Destinations</th>
-                <th>Location</th>
+                <th> <img src="./bus.png" alt="Bus Line" id="icon"> </th>
+                <th> <img src="./clock.png" alt="Arrival Time" id="icon"> </th>
+                <th> <img src="./destination.png" alt="destination" id="icon"> </th>
+                <th> <img src="./map.png" alt="Location" id="icon"> </th>
             </tr>
         </thead>
         <tbody>
@@ -269,9 +294,11 @@
 
 
 
-    <p id="legaltext">Urbanos de marbella V1.0, Copyright (C) 2024 - Alexander <br>
+    <p id="legaltext">Urbanos de marbella (v1.0.1), Copyright (C) 2024 - Alexander <br>
         Urbanos de marbella comes with ABSOLUTELY NO WARRANTY; for details view <a href="./LICENSE">GNU Licence</a>. <br>
         This is free software, and you are welcome to redistribute it under certain conditions; view <a href="./LICENSE">GNU Licence</a> for details.</p>
+
+
 
 <script>
 
@@ -287,6 +314,112 @@
         if (loadingAnimationId) {
             $('#loadingText').fadeOut();
         }
+    }
+
+    // Function to search nearby stops based on current GPS location
+    function searchNearbyStops() {
+        // Show loading text
+        const loadingAnimationId = showLoadingText();
+
+        // Check if Geolocation is supported by the browser
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                function (position) {
+                    // Get user's current coordinates
+                    var userCoordinates = {
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude
+                    };
+
+                    // API Call to get all bus stops
+                    $.ajax({
+                        url: 'https://apisvt.avanzagrupo.com/lineas/getParadas',
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function (response) {
+                            // Calculate distances and find the nearest 6 stops
+                            var nearbyStops = findNearestStops(response.data.paradas, userCoordinates, 6);
+
+                            // Display nearby stops
+                            displayMatchingStops(nearbyStops);
+
+                            // Hide loading text when the search is complete
+                            hideLoadingText(loadingAnimationId);
+                        },
+                        error: function () {
+                            // Display error message
+                            alert('Error fetching bus stop data. Please try again later.');
+
+                            // Hide loading text when there's an error
+                            hideLoadingText(loadingAnimationId);
+                        }
+                    });
+                },
+                function (error) {
+                    // Handle Geolocation error
+                    alert('Error getting your current location. Please try again or use manual search.');
+
+                    // Hide loading text when there's an error
+                    hideLoadingText(loadingAnimationId);
+                }
+            );
+        } else {
+            // Geolocation is not supported
+            alert('Geolocation is not supported by your browser. Please use manual search.');
+
+            // Hide loading text when there's an error
+            hideLoadingText(loadingAnimationId);
+        }
+    }
+
+    // Function to calculate distances and find the nearest stops
+    function findNearestStops(allStops, userCoordinates, numStops) {
+        // Calculate distances for all stops
+        var stopsWithDistances = allStops.map(function (stop) {
+            var stopCoordinates = {
+                latitude: parseFloat(stop.coordinates[0]),
+                longitude: parseFloat(stop.coordinates[1])
+            };
+
+            // Calculate distance using Haversine formula
+            var distance = calculateHaversineDistance(userCoordinates, stopCoordinates);
+
+            return {
+                stop: stop,
+                distance: distance
+            };
+        });
+
+        // Sort stops based on distance
+        stopsWithDistances.sort(function (a, b) {
+            return a.distance - b.distance;
+        });
+
+        // Get the nearest stops
+        var nearestStops = stopsWithDistances.slice(0, numStops).map(function (item) {
+            return item.stop;
+        });
+
+        return nearestStops;
+    }
+
+    // Function to calculate distance between two coordinates using Haversine formula
+    function calculateHaversineDistance(coord1, coord2) {
+        var R = 6371; // Earth's radius in kilometers
+        var dLat = deg2rad(coord2.latitude - coord1.latitude);
+        var dLon = deg2rad(coord2.longitude - coord1.longitude);
+        var a =
+            Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(deg2rad(coord1.latitude)) * Math.cos(deg2rad(coord2.latitude)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        var distance = R * c; // Distance in kilometers
+        return distance;
+    }
+
+    // Function to convert degrees to radians
+    function deg2rad(deg) {
+        return deg * (Math.PI / 180);
     }
 
     function searchBusStop() {
@@ -460,18 +593,16 @@
         document.cookie = name + '=' + value + expires + '; path=/';
     }
 
-    // Show favourites
     function showFavorites() {
         // Close any existing favorites dialog
         $('.favoritesDialog').remove();
-
-
 
         // Get favorites from the cookie
         var favorites = JSON.parse(getCookie('favorites')) || [];
 
         // Create a custom dialog for displaying favorites
         var favoritesDialog = $('<div>').addClass('favoritesDialog');
+        favoritesDialog.append($('<h3>').text('Favorites ★'));
 
         // Display each favorite stop with a clickable link and remove button
         favorites.forEach(function (favorite) {
@@ -480,9 +611,7 @@
                 .text(favorite.favoriteName)
                 .click(function () {
                     // Close the favorites dialog
-                    favoritesDialog.fadeOut(300, function () {
-                        favoritesDialog.remove();
-                    });
+                    favoritesDialog.remove();
 
                     // Fill the "Custom Stop ID" field and update the page
                     $('#stopIdInput').val(favorite.stopId);
@@ -496,30 +625,23 @@
                 showFavorites();
             });
 
-            favoriteStopInfo.append($('<h3>').text('Your favourite bus stops'));
-
             favoriteStopInfo.append($('<h4>').append(favoriteLink));
-            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId ));
+            favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId));
             favoriteStopInfo.append(removeButton);
             favoritesDialog.append(favoriteStopInfo);
         });
 
         // Add a close button
         var closeButton = $('<button>').text('Close').click(function () {
-            // Fade out the favorites dialog and remove the blur effect
-            favoritesDialog.fadeOut(300, function () {
-                favoritesDialog.remove();
-                $('body').removeClass('blur');
-            });
+            favoritesDialog.remove();
         });
         favoritesDialog.append(closeButton);
 
-        // Append the dialog to the body and apply fade-in animation
+        // Append the dialog to the body
         $('body').append(favoritesDialog);
-        favoritesDialog.hide().fadeIn(300);
     }
 
-    // Function to remove a specific favorite from the list
+    // Function to remove a favorite from the list
     function removeFavorite(stopId) {
         var favorites = JSON.parse(getCookie('favorites')) || [];
         var updatedFavorites = favorites.filter(function (favorite) {
@@ -566,7 +688,8 @@
                     row.append($('<td>').text(bus.coLinea));
                     row.append($('<td>').text(bus.quedan));
                     row.append($('<td>').text(bus.dsDestino));
-                    row.append($('<td>').append($('<a>').attr('href', 'https://www.google.com/maps?q=' + bus.lat + ',' + bus.lon).text('View on Map')));
+                        var mapImage = $('<img>').attr('src', './pushpin.png').attr('alt', 'View on Map').attr('id', 'icon');
+                    row.append($('<td>').append($('<a>').attr('href', 'https://www.google.com/maps?q=' + bus.lat + ',' + bus.lon).append(mapImage)));
 
                     // Append the row to the table
                     $('#busTable tbody').append(row);
