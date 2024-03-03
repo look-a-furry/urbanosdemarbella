@@ -1,0 +1,246 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+}
+h2 {
+    background-color: #FF0000; /* Red theme */
+    color: #ffffff;
+    padding: 15px;
+    margin: 0;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+}
+
+#searchByName,
+#customStopId {
+    margin-top: 20px;
+}
+
+label {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-right: 10px;
+}
+
+input {
+    font-style: italic;
+    width: 60%;
+    padding: 8px;
+    font-size: 1em;
+    margin-right: 10px;
+    border-radius: 10px;
+}
+
+button {
+    padding: 8px;
+    font-size: 1em;
+    background-color: #FF0000; /* Red theme */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#largebutton{
+    width: 100%;
+    padding: 8px;
+    font-size: 1em;
+    background-color: #FF0000; /* Red theme */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#stopInfo,
+#timestamp {
+    background-color: #ffffff;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background-color: #ffffff;
+    color: #333;
+    border-radius: 5px;
+}
+
+th,
+td {
+    border: 1px solid #ddd;
+    padding: 12px;
+    text-align: center;
+}
+
+th {
+    background-color: #FF0000; /* Red theme */
+    color: #ffffff;
+    
+}
+
+td a {
+    color: #FF0000; /* Red theme */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+td a:hover {
+    color: #c0392b; /* Darker red */
+}
+
+.stopHeader {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.stopCoordinates a {
+    color: #FF0000; /* Red theme */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.stopCoordinates a:hover {
+    color: #c0392b; /* Darker red */
+}
+
+.lineSymbol {
+    font-weight: bold;
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: #FF0000; /* Red theme */
+    margin: 2px;
+    text-align: center;
+    line-height: 20px;
+    color: #ffffff;
+}
+
+.stopInfoTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 5px;
+}
+
+.stopInfoTable th,
+.stopInfoTable td {
+    padding: 12px;
+    border-style: none;
+}
+.stopInfoTable th a {
+    color: #ffffff; /* White color for the link */
+    text-decoration: none; /* Remove underline */
+}
+
+.lineSymbol {
+    display: inline-block;
+    width: 38px; /* Adjust the width as needed */
+    height: 38px; /* Adjust the height as needed */
+    border-radius: 15%;
+    background-color: #FF0000; /* Red theme */
+    margin-right: 2px;
+    text-align: center;
+    line-height: 38px;
+    color: #ffffff;
+    font-size: 12px; /* Adjust the font size as needed */
+    
+}
+
+#updateStatus {
+    font-size: 1.2em;
+    margin-top: 10px;
+    color: #27ae60; /* Green */
+}
+
+#loadingText {
+    display: none;
+}
+
+.favoritesDialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 2px solid #fd3131;
+    border-radius: 15px;
+    z-index: 9999;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.favoriteStopInfo {
+    margin-bottom: 20px;
+}
+
+.favoriteStopInfo h4 {
+    margin-bottom: 5px;
+}
+
+.favoriteStopInfo p {
+    font-size: 12px;
+    color: #555;
+}
+
+.favoritesDialog button {
+    background-color: #333;
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+}
+
+.favoritesDialog button:hover {
+    background-color: #555;
+}
+
+#legaltext{
+    text-align: center;
+    font-size: 12px;    
+}
+
+#icon{
+    width: 25px;
+    height: 25px;
+}
+
+/* Mobile Styles */
+@media only screen and (max-width: 800px) {
+    input {
+        width: 96%;
+        margin-bottom: 10px;
+    }
+    body {
+        margin: 0px;
+    }
+    #timestamp {
+    background-color: #ffffff;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 5px;
+    text-align: center;
+    }
+    button{
+        width: 100%;
+        padding: 8px;
+        font-size: 1em;
+        background-color: #FF0000; /* Red theme */
+        color: #ffffff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+}
