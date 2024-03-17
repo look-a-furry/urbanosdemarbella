@@ -119,6 +119,30 @@ function searchBusStop() {
     // Show loading text
     showLoadingText();
 
+    // We use stop.distance to calculate the distance from the bus stop, since this function does not requiere the user to share location permissiosn, we just set them all to zero
+
+    function findNearestStops(stops, userCoordinates, count) {
+        // Calculate distances using Haversine formula
+        stops.forEach(function (stop) {
+            var stopCoordinates = {
+                latitude: parseFloat(stop.coordinates[0]),
+                longitude: parseFloat(stop.coordinates[1])
+            };
+    
+            stop.distance = haversineDistance(userCoordinates, stopCoordinates);
+        });
+    
+        // Sort stops by distance
+        stops.sort(function (a, b) {
+            return a.distance - b.distance;
+        });
+    
+        // Return the specified number of nearest stops
+        return stops.slice(0, count);
+    }
+
+    findNearestStops
+
     // Get the stop name entered by the user
     var stopName = $('#stopNameInput').val().trim();
 
@@ -206,7 +230,7 @@ function displayMatchingStops(stops, userCoordinates) {
 
                 // Create an image element and set its attributes
                 var extLinkImg = $('<img>').attr({
-                    src: './extlink.png',  // Adjust the path to the actual location of your image
+                    src: './img/extlink.png', 
                     alt: 'External Link',
                     width: '13',  // Set the width as needed
                     height: '13'  // Set the height as needed

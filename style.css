@@ -217,6 +217,11 @@ td a:hover {
     height: 25px;
 }
 
+.icon{
+    width: 25px;
+    height: 25px;
+}
+
 /* Mobile Styles */
 @media only screen and (max-width: 800px) {
     input {
