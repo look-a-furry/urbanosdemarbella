@@ -1,5 +1,17 @@
 var loadingAnimationId;
 
+// Global state object to track the modal status and bus line
+var updateIntervalId;
+var modalState = {
+    isOpen: false,
+    busLine: null,
+    updateBusLocation: null
+};
+
+// Global variables to track the status of the API and the timeout duration
+var API_TIMEOUT = 15000; // 15 seconds
+var API_URL = 'https://apisvt.avanzagrupo.com/lineas/getTraficosParada';
+
 function showLoadingText() {
     const loadingText = $('#loadingText');
     loadingText.text('Querying database...');
@@ -12,10 +24,30 @@ function hideLoadingText() {
     }
 }
 
+// Function to show the custom dialog
+function showCustomDialog(message) {
+    var dialog = document.getElementById("customDialog");
+    var dialogMessage = document.getElementById("dialogMessage");
+    var span = document.getElementsByClassName("close-dialog")[0];
+
+    dialogMessage.textContent = message;
+    dialog.style.display = "block";
+
+    span.onclick = function() {
+        dialog.style.display = "none";
+    };
+
+    window.onclick = function(event) {
+        if (event.target == dialog) {
+            dialog.style.display = "none";
+        }
+    };
+}
+
 // Function to search nearby stops based on current GPS location
 function searchNearbyStops() {
     // Show loading text
-    const loadingAnimationId = showLoadingText();
+    showLoadingText();
 
     // Check if Geolocation is supported by the browser
     if ("geolocation" in navigator) {
@@ -44,7 +76,7 @@ function searchNearbyStops() {
                     },
                     error: function () {
                         // Display error message
-                        alert('Error fetching bus stop data. Please try again later.');
+                        showCustomDialog('Error fetching bus stop data. Please try again later.');
 
                         // Hide loading text when there's an error
                         hideLoadingText(loadingAnimationId);
@@ -53,7 +85,7 @@ function searchNearbyStops() {
             },
             function (error) {
                 // Handle Geolocation error
-                alert('Error getting your current location. Please try again or use manual search.');
+                showCustomDialog('Error getting your current location. Please try again or use manual search.');
 
                 // Hide loading text when there's an error
                 hideLoadingText(loadingAnimationId);
@@ -61,7 +93,7 @@ function searchNearbyStops() {
         );
     } else {
         // Geolocation is not supported
-        alert('Geolocation is not supported by your browser. Please use manual search.');
+        showCustomDialog('Geolocation is not supported by your browser. Please use manual search.');
 
         // Hide loading text when there's an error
         hideLoadingText(loadingAnimationId);
@@ -119,29 +151,29 @@ function searchBusStop() {
     // Show loading text
     showLoadingText();
 
-    // We use stop.distance to calculate the distance from the bus stop, since this function does not requiere the user to share location permissiosn, we just set them all to zero
-
+    // Inner function to find nearest stops (though not currently used within this function)
     function findNearestStops(stops, userCoordinates, count) {
+        // Ensure userCoordinates is provided or defaulted to zero
+        userCoordinates = userCoordinates || { latitude: 0, longitude: 0 };
+        
         // Calculate distances using Haversine formula
         stops.forEach(function (stop) {
             var stopCoordinates = {
                 latitude: parseFloat(stop.coordinates[0]),
                 longitude: parseFloat(stop.coordinates[1])
             };
-    
+
             stop.distance = haversineDistance(userCoordinates, stopCoordinates);
         });
-    
+
         // Sort stops by distance
         stops.sort(function (a, b) {
             return a.distance - b.distance;
         });
-    
+
         // Return the specified number of nearest stops
         return stops.slice(0, count);
     }
-
-    findNearestStops
 
     // Get the stop name entered by the user
     var stopName = $('#stopNameInput').val().trim();
@@ -171,6 +203,11 @@ function searchBusStop() {
                     });
                 });
 
+                // Initialize distance property for each stop to avoid undefined error
+                matchingStops.forEach(function(stop) {
+                    stop.distance = 0;
+                });
+
                 // Display matching stops
                 displayMatchingStops(matchingStops);
 
@@ -179,7 +216,7 @@ function searchBusStop() {
             },
             error: function() {
                 // Display error message
-                alert('Error fetching bus stop data. Please try again later.');
+                showCustomDialog('Error fetching bus stop data. Please try again later.');
 
                 // Hide loading text when there's an error
                 hideLoadingText();
@@ -187,12 +224,12 @@ function searchBusStop() {
         });
     } else {
         // Display message if no name is provided
-        alert('Please enter a Stop Name for search.');
+        showCustomDialog('Please enter a Stop Name for search.');
 
         // Hide loading text when the search is complete (even in case of an error)
         hideLoadingText();
     }
-}    
+}
 
 // Function to display nearby stops with distances
 function displayMatchingStops(stops, userCoordinates) {
@@ -202,7 +239,7 @@ function displayMatchingStops(stops, userCoordinates) {
 
     // Fetch bus lines color data
     $.ajax({
-        url: 'https://apisvt.avanzagrupo.com/lineas/getLineas?empresa=10&N=1',
+        url: 'https://apisvt.avanzagrupo.com/lineas/getLineas?empresa=10-21',
         type: 'GET',
         dataType: 'json',
         success: function (colorResponse) {
@@ -237,14 +274,20 @@ function displayMatchingStops(stops, userCoordinates) {
                 });
 
                 // Append the image and text to the link
-                headerLink.append(extLinkImg).append(' Stop ID: ' + stop.cod + ' - ' + stop.ds + ' - Distance: ' + stop.distance.toFixed(2) + ' meters');
+                headerLink.append(extLinkImg).append(' Stop ID: ' + stop.cod + ' - ' + stop.ds);
 
                 // Add "Add to Favorites" button
                 var addToFavoritesButton = $('<button>').text('Add to Favorites ★').click(function () {
                     addToFavorites(stop.cod, stop.ds);
                 });
 
-                clickableHeaderRow.append($('<th>').append(headerLink).append(addToFavoritesButton));
+                // Add "View Next Buses" button
+                var viewNextBusesButton = $('<button>').html('View Next Buses <img src="./img/bus.png" alt="Bus Icon" width="12" height="12">').click(function () {
+                    $('#stopIdInput').val(stop.cod);
+                    fetchBusData();
+                });
+
+                clickableHeaderRow.append($('<th>').append(headerLink).append(addToFavoritesButton).append(viewNextBusesButton));
 
                 var locationLinkRow = $('<tr>').append($('<td>').append($('<a>')
                     .attr('href', 'https://www.google.com/maps?q=' + stop.coordinates[0] + ',' + stop.coordinates[1])
@@ -269,10 +312,11 @@ function displayMatchingStops(stops, userCoordinates) {
         },
         error: function () {
             // Display error message for color data
-            alert('Error fetching bus lines color data. Defaulting to red.');
+            showCustomDialog('Error fetching bus lines color data. Defaulting to red.');
         }
     });
 }
+
 
 // Function to add a bus stop to favorites
 function addToFavorites(stopId, defaultStopName) {
@@ -376,64 +420,159 @@ function formatDate(timestamp) {
     return year + '-' + month + '-' + day;
 }
 
-function fetchBusData() {
-    // Get custom stop ID
+function fetchBusData(updateMap) {
     var customStopId = $('#stopIdInput').val().trim();
     if (!customStopId) {
-        alert('Please enter a Stop ID.');
+        showCustomDialog('Please enter a Stop ID.');
         return;
     }
 
+    var requestCompleted = false;
 
-    // API Call
+    var timeoutId = setTimeout(function() {
+        if (!requestCompleted) {
+            showCustomDialog('Error: The request took too long to complete.');
+            $('#updateStatus').text('Error: Timeout').css('color', '#FF0000'); // Red color
+        }
+    }, API_TIMEOUT);
+
     $.ajax({
-        url: 'https://apisvt.avanzagrupo.com/lineas/getTraficosParada?empresa=0-9999&parada=' + customStopId + '&find=',
+        url: API_URL + '?empresa=0-9999&parada=' + customStopId + '&find=',
         type: 'GET',
         dataType: 'json',
         success: function(response) {
-            // Clear previous data
-            $('#busTable tbody').empty();
+            requestCompleted = true;
+            clearTimeout(timeoutId);
 
-            // Update table header with stop info
-            $('#stopInfoHeader').text('Stop ID: ' + response.data.parada.cod + ' - ' + response.data.parada.ds);
+            if (response.status === 'ok') {
+                $('#busTable tbody').empty();
+                $('#stopInfoHeader').text('Stop ID: ' + response.data.parada.cod + ' - ' + response.data.parada.ds);
 
-            // Loop through bus data and add rows to the table
-            $.each(response.data.traficos, function(index, bus) {
-                // Create a new table row
-                var row = $('<tr>');
-
-                // Append data to the row
-                row.append($('<td>').text(bus.coLinea));
-                row.append($('<td>').text(bus.quedan));
-                row.append($('<td>').text(bus.dsDestino));
+                $.each(response.data.traficos, function(index, bus) {
+                    var row = $('<tr>');
+                    row.append($('<td>').text(bus.coLinea));
+                    row.append($('<td>').text(bus.quedan));
+                    row.append($('<td>').text(bus.dsDestino));
                     var mapImage = $('<img>').attr('src', './img/pushpin.png').attr('alt', 'View on Map').attr('id', 'icon');
-                row.append($('<td>').append($('<a>').attr('href', 'https://www.google.com/maps?q=' + bus.lat + ',' + bus.lon).append(mapImage)));
+                    var mapLink = $('<a>').attr('href', '#').addClass('busLocationLink').data('lat', bus.lat).data('lon', bus.lon).data('busLine', bus.coLinea).data('ref', bus.ref).append(mapImage);
+                    row.append($('<td>').append(mapLink));
+                    $('#busTable tbody').append(row);
 
-                // Append the row to the table
-                $('#busTable tbody').append(row);
-            });
+                    if (modalState.isOpen && bus.coLinea === modalState.busLine && bus.ref === modalState.busRef) {
+                        modalState.updateBusLocation(bus.lat, bus.lon);
+                    }
+                });
 
-            // Display timestamp information
-            $('#timestamp').text('Date: ' + formatDate(response.fxSistema) + ' Last update took: ' + response.time + ' ms');
+                $('#timestamp').text('Date: ' + formatDate(response.fxSistema) + ' Last update took: ' + response.time + ' ms');
+                $('#updateStatus').text('Up to date ✔').css('color', '#27ae60'); // Green color
 
-            // Update status to "Up to date" with green checkmark
-            $('#updateStatus').text('Up to date ✔').css('color', '#27ae60'); // Green color
+                $('.busLocationLink').click(function() {
+                    var busLat = $(this).data('lat');
+                    var busLon = $(this).data('lon');
+                    var busLine = $(this).data('busLine');
+                    var busRef = $(this).data('ref');
+                    openMapModal(busLat, busLon, busLine, busRef);
+                });
+            } else {
+                showCustomDialog('Error: ' + response.message);
+                $('#updateStatus').text('Error: ' + response.message).css('color', '#FF0000'); // Red color
+            }
         },
         error: function() {
-            // Display error message
-            alert('Error fetching data. Please try again later.');
+            requestCompleted = true;
+            clearTimeout(timeoutId);
+            showCustomDialog('Error: Could not fetch data from the API.');
+            $('#updateStatus').text('Error: Could not fetch data').css('color', '#FF0000'); // Red color
         }
+    });
+}
+
+// Function to open the modal and display the map
+function openMapModal(busLat, busLon, busLine, busRef) {
+    checkApiStatus(function(isUp) {
+        if (!isUp) {
+            showCustomDialog('Error: The API is currently down.');
+            return;
+        }
+
+        var modal = document.getElementById("mapModal");
+        var span = document.getElementsByClassName("close")[0];
+
+        modal.style.display = "block";
+
+        var zoomLevel = 16.5;  // Set the zoom level higher for a closer view
+        var map = L.map('mapContainer').setView([busLat, busLon], zoomLevel);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        var marker = L.marker([busLat, busLon]).addTo(map);
+
+        modalState.isOpen = true;
+        modalState.busLine = busLine;
+        modalState.busRef = busRef;
+        modalState.updateBusLocation = function(newLat, newLon) {
+            map.setView([newLat, newLon], zoomLevel);
+            marker.setLatLng([newLat, newLon]);
+        };
+
+        span.onclick = function() {
+            modal.style.display = "none";
+            map.remove();
+            clearInterval(updateIntervalId);
+            modalState.isOpen = false;
+        };
+
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+                map.remove();
+                clearInterval(updateIntervalId);
+                modalState.isOpen = false;
+            }
+        };
+
+        fetchBusData();
     });
 }
 
 // Update timestamp while refreshing
 setInterval(function() {
-    // Fetch bus data only if Stop ID is provided
     if ($('#stopIdInput').val().trim()) {
-        // Show "Updating..." status
         $('#updateStatus').text('Updating...').css('color', '#333'); // Default color
-
-        // Fetch bus data
         fetchBusData();
     }
 }, 5000);
+
+// Function to check the API status
+function checkApiStatus(callback) {
+    $.ajax({
+        url: API_URL,
+        type: 'GET',
+        timeout: API_TIMEOUT,
+        dataType: 'json',
+        success: function(response) {
+            if (response.status === 'ok') {
+                callback(true);
+            } else {
+                callback(false);
+            }
+        },
+        error: function() {
+            callback(false);
+        }
+    });
+}
+
+// Add event listeners for Enter key press on input fields
+$('#stopNameInput').keypress(function(event) {
+    if (event.which == 13) { // Enter key pressed
+        searchBusStop();
+    }
+});
+
+$('#stopIdInput').keypress(function(event) {
+    if (event.which == 13) { // Enter key pressed
+        fetchBusData();
+    }
+});

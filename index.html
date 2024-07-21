@@ -6,6 +6,8 @@
     <title>Bus Arrival Times</title>
     <link rel="icon" type="image/png" href="./img/bus.png">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
     <script src="./script.js"></script>
     <link rel="stylesheet" href="./style.css">
 
@@ -17,13 +19,13 @@
     <div id="searchByName">
         <label for="stopNameInput">Search by Stop Name:</label>
         <input type="text" id="stopNameInput" placeholder="Enter Stop Name">
-        <button onclick="searchBusStop()">Update</button>
+        <button onclick="searchBusStop()">Search</button>
     </div>
 
     <div id="customStopId">
         <label for="stopIdInput">Do you know the ID?:</label>
         <input type="text" id="stopIdInput" placeholder="Enter Stop ID">
-        <button onclick="fetchBusData()">Update</button>
+        <button onclick="fetchBusData()">Query</button>
     </div>
     <br>
     <button id="largebutton" onclick="showFavorites()">View Favorites ★</button>
@@ -33,11 +35,9 @@
     <p style="font-size: 12px;">(Location permission requiered)</p>
 
     <div id="loadingText"></div>
-    <div id="stopInfo"></div>
+    
 
     <p id="timestamp"></p>
-
-    <button id="largebutton" onclick="fetchBusData()">Force Update</button>
 
     <div id="updateStatus">Search a bus stop or enter a bus stop ID</div>
     <table id="busTable">
@@ -56,6 +56,18 @@
             <!-- Data will be inserted here dynamically -->
         </tbody>
     </table>    
+
+    <div id="stopInfo"></div>
+
+        <!-- Modal structure for the map -->
+    <div id="mapModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Bus Location</h2>
+            <div id="mapContainer"></div>
+        </div>
+    </div>
+
 
     <p id="legaltext">
         Urbanos de marbella (v1.0.1), Copyright (C) 2024 - Alexander <br>

@@ -14,14 +14,13 @@ Features
 
 - **Search Nearby Stops:** Find nearby bus stops based on your current GPS location. Note that location permission is required for this feature.
 
-- **Force Update:** Manually trigger an update to fetch the latest bus arrival information.
 
 Getting Started
 ---------------
 
 To use the Bus Arrival Times web app, follow these steps:
 
-1. Open the `index.html` file in a web browser.
+1. Open the `index.html` file in a web browser. (Or check our github live page. Any data, like favourites, location, and such, is stored locally in your browser as a cookie and cannot be acessed outisde of it, except by the API of bus company.)
 
 2. Use the provided input fields to search for bus stops by name or ID.
 
