@@ -19,7 +19,7 @@ Getting Started
 
 To use the Bus Arrival Times web app, follow these steps:
 
-1. Open the `index.html` file in a web browser. (Or check our github live page. Any data, like favourites, location, and such, is stored locally in your browser as a cookie and cannot be acessed outisde of it, except by the API of bus company.)
+1. Open the `index.html` file in a web browser. (Or check our [github live page](https://look-a-furry.github.io/urbanosdemarbella/). Any data, like favourites, is stored locally in your browser as a cookie and cannot be acessed outisde of it, except by the API of the bus company, the data is forwarded to the API when making a call. I do not have control over how the data is handled by the bus company, your public IP adress may be included in the API requests.)
 
 2. Use the provided input fields to search for bus stops by name or ID.
 
