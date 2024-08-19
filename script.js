@@ -11,6 +11,7 @@ var modalState = {
 // Global variables to track the status of the API and the timeout duration
 var API_TIMEOUT = 15000; // 15 seconds
 var API_URL = 'https://apisvt.avanzagrupo.com/lineas/getTraficosParada';
+var userZoomLevel = 18; // Default zoom level
 
 function showLoadingText() {
     const loadingText = $('#loadingText');
@@ -22,6 +23,18 @@ function hideLoadingText() {
     if (loadingAnimationId) {
         $('#loadingText').fadeOut();
     }
+}
+
+// Show loading overlay
+function showLoadingOverlay() {
+    $('body').addClass('loading');  // Blur the background
+    $('#loadingOverlay').show();    // Show the overlay
+}
+
+// Hide loading overlay
+function hideLoadingOverlay() {
+    $('body').removeClass('loading'); // Remove blur from background
+    $('#loadingOverlay').hide();      // Hide the overlay
 }
 
 // Function to show the custom dialog
@@ -500,19 +513,24 @@ function openMapModal(busLat, busLon, busLine, busRef) {
 
         modal.style.display = "block";
 
-        var zoomLevel = 16.5;  // Set the zoom level higher for a closer view
-        var map = L.map('mapContainer').setView([busLat, busLon], zoomLevel);
+        // Use the stored zoom level
+        var map = L.map('mapContainer').setView([busLat, busLon], userZoomLevel);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
         var marker = L.marker([busLat, busLon]).addTo(map);
 
+        // Listen for zoom events and update the stored zoom level
+        map.on('zoomend', function() {
+            userZoomLevel = map.getZoom();
+        });
+
         modalState.isOpen = true;
         modalState.busLine = busLine;
         modalState.busRef = busRef;
         modalState.updateBusLocation = function(newLat, newLon) {
-            map.setView([newLat, newLon], zoomLevel);
+            map.setView([newLat, newLon], userZoomLevel);
             marker.setLatLng([newLat, newLon]);
         };
 

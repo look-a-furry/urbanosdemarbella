@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Lines</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body>
+
+    <h2>Available Bus Lines</h2>
+    <br>
+    <div id="linesContainer"></div>
+    <div id="stopsContainer"></div>
+
+    <!-- Journey Selection Modal -->
+    <div id="journeyModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Choose a Journey</h3>
+            <div id="journeyOptions"></div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay">
+        <img src="./img/loading.gif" alt="Loading...">
+    </div>
+
+    <script src="./lines.js"></script>
+</body>
+</html>

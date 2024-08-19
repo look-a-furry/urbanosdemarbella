@@ -14,6 +14,10 @@ Features
 
 - **Search Nearby Stops:** Find nearby bus stops based on your current GPS location. Note that location permission is required for this feature.
 
+- **View all Urban Lines:** Shows a list of all urban lines within the municipal territory of Marbella.
+
+- **View all Metropolitan Lines:** Shows a list of all suburban lines within the Metropolitan Area of Málaga Operated by the Portillo (Avanzabus) company.
+
 Getting Started
 ---------------
 
