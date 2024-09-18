@@ -367,6 +367,7 @@ td a:hover {
     line-height: 38px;
     color: #ffffff;
     font-size: 12px;
+    font-weight: bold;
 }
 
 .lineName {

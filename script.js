@@ -1,6 +1,7 @@
 var loadingAnimationId;
 
 // Global state object to track the modal status and bus line
+var loadingAnimationId;
 var updateIntervalId;
 var modalState = {
     isOpen: false,
@@ -37,11 +38,29 @@ function hideLoadingOverlay() {
     $('#loadingOverlay').hide();      // Hide the overlay
 }
 
+// Show loading animation for the map modal
+function showMapLoadingAnimation() {
+    const mapLoadingOverlay = $('#mapLoadingOverlay');
+    mapLoadingOverlay.show();
+}
+
+// Hide loading animation for the map modal
+function hideMapLoadingAnimation() {
+    const mapLoadingOverlay = $('#mapLoadingOverlay');
+    mapLoadingOverlay.hide();
+}
+
 // Function to show the custom dialog
 function showCustomDialog(message) {
     var dialog = document.getElementById("customDialog");
     var dialogMessage = document.getElementById("dialogMessage");
     var span = document.getElementsByClassName("close-dialog")[0];
+
+    // Check if dialogMessage exists before trying to update it
+    if (!dialogMessage) {
+        console.error('Error: dialogMessage element is not found in the DOM.');
+        return;  // Exit the function to prevent further errors
+    }
 
     dialogMessage.textContent = message;
     dialog.style.display = "block";
@@ -457,7 +476,8 @@ function fetchBusData(updateMap) {
             requestCompleted = true;
             clearTimeout(timeoutId);
 
-            if (response.status === 'ok') {
+            // Check if response.data and response.data.parada are not null or undefined
+            if (response.status === 'ok' && response.data && response.data.parada) {
                 $('#busTable tbody').empty();
                 $('#stopInfoHeader').text('Stop ID: ' + response.data.parada.cod + ' - ' + response.data.parada.ds);
 
@@ -467,7 +487,12 @@ function fetchBusData(updateMap) {
                     row.append($('<td>').text(bus.quedan));
                     row.append($('<td>').text(bus.dsDestino));
                     var mapImage = $('<img>').attr('src', './img/pushpin.png').attr('alt', 'View on Map').attr('id', 'icon');
-                    var mapLink = $('<a>').attr('href', '#').addClass('busLocationLink').data('lat', bus.lat).data('lon', bus.lon).data('busLine', bus.coLinea).data('ref', bus.ref).append(mapImage);
+                    var mapLink = $('<a>').attr('href', '#').addClass('busLocationLink')
+                        .data('lat', bus.lat)
+                        .data('lon', bus.lon)
+                        .data('busLine', bus.coLinea)
+                        .data('ref', bus.ref)
+                        .append(mapImage);
                     row.append($('<td>').append(mapLink));
                     $('#busTable tbody').append(row);
 
@@ -487,8 +512,9 @@ function fetchBusData(updateMap) {
                     openMapModal(busLat, busLon, busLine, busRef);
                 });
             } else {
-                showCustomDialog('Error: ' + response.message);
-                $('#updateStatus').text('Error: ' + response.message).css('color', '#FF0000'); // Red color
+                // Handle cases where response data or parada is missing
+                showCustomDialog('Error: Invalid or missing data from the API.');
+                $('#updateStatus').text('Error: Invalid or missing data').css('color', '#FF0000'); // Red color
             }
         },
         error: function() {
@@ -513,6 +539,9 @@ function openMapModal(busLat, busLon, busLine, busRef) {
 
         modal.style.display = "block";
 
+        // Show map loading animation while the map is loading
+        showMapLoadingAnimation();
+
         // Use the stored zoom level
         var map = L.map('mapContainer').setView([busLat, busLon], userZoomLevel);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -520,6 +549,11 @@ function openMapModal(busLat, busLon, busLine, busRef) {
         }).addTo(map);
 
         var marker = L.marker([busLat, busLon]).addTo(map);
+
+        // Hide map loading animation once the map is fully loaded
+        map.on('load', function() {
+            hideMapLoadingAnimation();
+        });
 
         // Listen for zoom events and update the stored zoom level
         map.on('zoomend', function() {
