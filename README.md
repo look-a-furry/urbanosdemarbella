@@ -16,8 +16,6 @@ Features
 
 - **View all Urban Lines:** Shows a list of all urban lines within the municipal territory of Marbella.
 
-- **View all Metropolitan Lines:** Shows a list of all suburban lines within the Metropolitan Area of Málaga Operated by the Portillo (Avanzabus) company.
-
 Getting Started
 ---------------
 
