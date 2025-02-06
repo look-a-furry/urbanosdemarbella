@@ -15,6 +15,7 @@ h2 {
     margin: 0;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
+    text-align: center;
 }
 
 #searchByName,
@@ -433,7 +434,7 @@ td a:hover {
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s;
     text-align: center;
-    width: 45%;
+    width: 40%;
 }
 
 .journeyOption:hover {
@@ -469,4 +470,82 @@ td a:hover {
 body.loading #content {
     filter: blur(5px); /* Blur the background */
     pointer-events: none; /* Disable interactions */
+}
+
+#stopsContainer {
+    display: flex;
+    justify-content: left;
+    align-items: flex-start;
+    padding: 25px;
+}
+
+.busLineDiagram {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    width: 90%;
+    margin-left: 0 px;
+}
+
+.line {
+    width: 8px;
+    background-color: #c0392b;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 20px;
+    z-index: 1;
+}
+
+.stopItem {
+    display: flex;
+    align-items: center;
+    position: relative;
+    margin: 10px 0;
+    background-color: #f9f9f9; /* Light background for box */
+    border: 2px solid #c0392b;
+    border-radius: 10px;
+    padding: 10px 15px;
+    width: 100%;
+    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.stopItem:hover {
+    background-color: #eef7ff;
+    box-shadow: 3px 3px 10px rgba(255, 0, 0, 0.2);
+}
+
+.stopCircle {
+    width: 20px;
+    height: 20px;
+    background-color: #c0392b;
+    border-radius: 50%;
+    z-index: 2;
+    position: relative;
+    margin-right: 15px;
+    margin-left: -2.5px;
+}
+
+.stopLabel {
+    font-size: 16px;
+    color: #333;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.backButton {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 0px 0px 10px 10px;
+    cursor: pointer;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.backButton:hover {
+    background-color: #0056b3;
 }

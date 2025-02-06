@@ -4,8 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bus Lines</title>
+    <link rel="icon" type="image/png" href="./img/stop-button.png">
     <link rel="stylesheet" href="./style.css">
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="./lines.js"></script>
 </head>
 <body>
 
@@ -27,6 +31,13 @@
         <img src="./img/loading.gif" alt="Loading...">
     </div>
 
-    <script src="./lines.js"></script>
+    <!-- Stop Location Modal -->
+    <div id="stopLocationModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Stop Location</h3>
+            <div id="stopMapContainer" style="height: 400px; width: 100%;"></div>
+        </div>
+    </div>
 </body>
 </html>
