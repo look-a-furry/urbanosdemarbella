@@ -16,14 +16,17 @@
 <body>
     <h2>Bus Arrival Times</h2>
 
+    <button id="themeToggle" onclick="toggleTheme()">Switch to Dark Mode</button>
+    <a href="./flag.html"><button id="showFlag">Show stop Flag</button></a>
+
     <div id="searchByName">
         <label for="stopNameInput">Search by Stop Name:</label>
         <input type="text" id="stopNameInput" placeholder="Enter Stop Name">
-        <button onclick="searchBusStop()">Search</button>
+        <button onclick="searchBusStop()">Query</button>
     </div>
 
     <div id="customStopId">
-        <label for="stopIdInput">Do you know the ID?:</label>
+        <label for="stopIdInput">Do you know the ID? :</label>
         <input type="text" id="stopIdInput" placeholder="Enter Stop ID">
         <button onclick="fetchBusData()">Query</button>
     </div>
@@ -35,7 +38,6 @@
     <p style="font-size: 12px;">(Location permission requiered)</p>
 
     <a href="./lines.html"><button id="largebutton">View all Urban Lines ⎆ (beta)</button></a> <br>
-    <p style="font-size: 12px;">(This feature is under active development)</p>
 
     <div id="loadingText"></div>
     

@@ -1,19 +1,21 @@
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #ffffff;
+    background-color: #121212;
+    color: #e0e0e0;
     margin: 20px auto;
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
     max-width: 800px;
+    transition: background-color 0.3s ease, color 0.3s ease; /* Smooth transition for background and text color */
 }
 
-body, h2, #busTable, #busTable th, #busTable td {
+body, h2, #busTable, #busTable th, #busTable td, input {
     transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 h2 {
-    background-color: #FF0000; /* Red theme */
+    background-color: #D32F2F; /* Darker red */
     color: #ffffff;
     padding: 15px;
     margin: 0;
@@ -46,103 +48,107 @@ input {
     font-size: 1em;
     margin-right: 10px;
     border-radius: 10px;
+    background-color: #1e1e1e;
+    color: #ffffff;
     border: 1px solid #333;
 }
 
 button {
     padding: 8px;
     font-size: 1em;
-    background-color: #FF0000; /* Red theme */
+    background-color: #D32F2F; /* Darker red */
     color: #ffffff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
+    transition: background-color 0.3s, transform 0.1s;
 }
 
 button:active {
-    transform: scale(0.95); /* Scale down the button when clicked */
+    transform: scale(0.95);
 }
 
 button:hover {
-    background-color: #c0392b; /* Darker red on hover */
+    background-color: #B71C1C; /* Even darker red on hover */
 }
 
 #largebutton {
     width: 100%;
     padding: 8px;
     font-size: 1em;
-    background-color: #FF0000; /* Red theme */
+    background-color: #D32F2F;
     color: #ffffff;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
+    transition: background-color 0.3s, transform 0.1s;
 }
 
 #largebutton:active {
-    transform: scale(0.95); /* Scale down the button when clicked */
+    transform: scale(0.95);
 }
 
 #largebutton:hover {
-    background-color: #c0392b; /* Darker red on hover */
+    background-color: #B71C1C;
 }
 
 #stopInfo,
 #timestamp {
-    background-color: #ffffff;
+    background-color: #00000000;
     padding: 10px;
     margin-top: 10px;
     border-radius: 5px;
+    color: #e0e0e0;
+    transition: background-color 0.3s, transform 0.1s;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
-    background-color: #ffffff;
-    color: #333;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
     border-radius: 5px;
 }
 
 th,
 td {
-    border: 1px solid #ddd;
+    border: 1px solid #333;
     padding: 12px;
     text-align: center;
 }
 
 th {
-    background-color: #FF0000; /* Red theme */
+    background-color: #D32F2F;
     color: #ffffff;
 }
 
 td a {
-    color: #FF0000; /* Red theme */
+    color: #D32F2F;
     text-decoration: none;
     font-weight: bold;
-    transition: color 0.3s; /* Add transition effect */
+    transition: color 0.3s;
 }
 
 td a:hover {
-    color: #c0392b; /* Darker red */
+    color: #B71C1C;
 }
-
 .stopHeader {
     font-size: 1.2em;
     font-weight: bold;
     margin-bottom: 10px;
+    color: #e0e0e0;
 }
 
 .stopCoordinates a {
-    color: #FF0000; /* Red theme */
+    color: #D32F2F; /* Darker red */
     text-decoration: none;
     font-weight: bold;
-    transition: color 0.3s; /* Add transition effect */
+    transition: color 0.3s;
 }
 
 .stopCoordinates a:hover {
-    color: #c0392b; /* Darker red */
+    color: #B71C1C; /* Even darker red */
 }
 
 .lineSymbol {
@@ -150,7 +156,7 @@ td a:hover {
     width: 20px;
     height: 20px;
     border-radius: 50%;
-    background-color: #FF0000; /* Red theme */
+    background-color: #D32F2F; /* Darker red */
     margin: 2px;
     text-align: center;
     line-height: 20px;
@@ -161,6 +167,8 @@ td a:hover {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 5px;
+    background-color: #1e1e1e;
+    color: #e0e0e0;
 }
 
 .stopInfoTable th,
@@ -171,20 +179,20 @@ td a:hover {
 
 .stopInfoTable th a {
     color: #ffffff; /* White color for the link */
-    text-decoration: none; /* Remove underline */
+    text-decoration: none;
 }
 
 .lineSymbol {
     display: inline-block;
-    width: 38px; /* Adjust the width as needed */
-    height: 38px; /* Adjust the height as needed */
+    width: 38px;
+    height: 38px;
     border-radius: 15%;
-    background-color: #FF0000; /* Red theme */
+    background-color: #D32F2F;
     margin-right: 2px;
     text-align: center;
     line-height: 38px;
     color: #ffffff;
-    font-size: 12px; /* Adjust the font size as needed */
+    font-size: 12px;
 }
 
 #updateStatus {
@@ -195,6 +203,7 @@ td a:hover {
 
 #loadingText {
     display: none;
+    color: #e0e0e0;
 }
 
 .favoritesDialog {
@@ -202,13 +211,14 @@ td a:hover {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: white;
+    background-color: #1e1e1e;
     padding: 20px;
-    border: 2px solid #fd3131;
+    border: 2px solid #D32F2F;
     border-radius: 15px;
     z-index: 9999;
     max-height: 80%;
     overflow-y: auto;
+    color: #e0e0e0;
 }
 
 .favoriteStopInfo {
@@ -217,78 +227,70 @@ td a:hover {
 
 .favoriteStopInfo h4 {
     margin-bottom: 5px;
+    color: #e0e0e0;
 }
-
 .favoriteStopInfo p {
     font-size: 12px;
-    color: #555;
+    color: #b0b0b0;
 }
 
 .favoritesDialog button {
-    background-color: #333;
+    background-color: #444;
     color: white;
     padding: 5px 10px;
     border: none;
     cursor: pointer;
     font-size: 14px;
     margin-top: 10px;
-    transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
+    transition: background-color 0.3s, transform 0.1s;
 }
 
 .favoritesDialog button:active {
-    transform: scale(0.95); /* Scale down the button when clicked */
+    transform: scale(0.95);
 }
 
 .favoritesDialog button:hover {
-    background-color: #555;
+    background-color: #666;
 }
 
 #legaltext {
     text-align: center;
-    font-size: 12px;    
+    font-size: 12px;
+    color: #e0e0e0;
 }
 
-#icon {
+#icon, .icon {
     width: 25px;
     height: 25px;
 }
 
-.icon {
-    width: 25px;
-    height: 25px;
-}
-
-
-/* The Modal (background) */
 .modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
+    display: none;
+    position: fixed;
+    z-index: 1000;
     left: 0;
     top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.7);
     padding-top: 60px;
 }
 
-/* Modal Content/Box */
 .modal-content {
-    background-color: #fefefe;
-    margin: 5% auto; /* 15% from the top and centered */
+    background-color: #2e2e2e;
+    margin: 5% auto;
     padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
+    border: 1px solid #555;
+    width: 80%;
     max-width: 600px;
     border-radius: 10px;
     position: relative;
+    color: #e0e0e0;
 }
 
-/* The Close Button */
 .close {
-    color: #aaa;
+    color: #ccc;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -300,28 +302,25 @@ td a:hover {
 
 .close:hover,
 .close:focus {
-    color: black;
+    color: #ffffff;
     text-decoration: none;
     cursor: pointer;
 }
 
 #mapContainer {
     width: 100%;
-    height: 400px; /* Adjust the height as needed */
+    height: 400px;
 }
 
-/* For mobile responsiveness */
 @media only screen and (max-width: 800px) {
     .modal-content {
         width: 90%;
     }
     #mapContainer {
-        height: 300px; /* Adjust the height for mobile screens */
+        height: 300px;
     }
 }
 
-
-/* Mobile Styles */
 @media only screen and (max-width: 800px) {
     input {
         width: 96%;
@@ -331,25 +330,31 @@ td a:hover {
         margin: 0px;
     }
     #timestamp {
-        background-color: #ffffff;
+        background-color: #00000000;
         padding: 10px;
         margin-top: 10px;
         border-radius: 5px;
         text-align: center;
+        color: #e0e0e0;
+        transition: background-color 0.3s, transform 0.1s;
     }
     button {
         width: 100%;
         padding: 8px;
         font-size: 1em;
-        background-color: #FF0000; /* Red theme */
+        background-color: #D32F2F;
         color: #ffffff;
         border: none;
         border-radius: 5px;
         cursor: pointer;
     }
 }
+/* Dark mode styling for the bus lines page */
+body {
+    background-color: #121212;
+    color: #e0e0e0;
+}
 
-/* Styling for the bus lines page */
 #lineContainer {
     margin-top: 20px;
 }
@@ -358,15 +363,15 @@ td a:hover {
     display: flex;
     align-items: center;
     padding: 10px;
-    border: 1px solid #ddd;
+    border: 1px solid #444;
     border-radius: 5px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
+    background-color: #1e1e1e;
     transition: background-color 0.3s, transform 0.1s;
 }
 
 .lineItem:hover {
-    background-color: #f1f1f1;
+    background-color: #333;
 }
 
 .lineSymbol {
@@ -385,7 +390,7 @@ td a:hover {
 .lineName {
     font-size: 1.2em;
     font-weight: bold;
-    color: #333;
+    color: #e0e0e0;
 }
 
 /* Custom Journey Selection Modal */
@@ -398,23 +403,24 @@ td a:hover {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(0, 0, 0, 0.7);
     padding-top: 60px;
 }
 
 #journeyModal .modal-content {
-    background-color: #fefefe;
+    background-color: #222;
     margin: 5% auto;
     padding: 20px;
-    border: 1px solid #888;
+    border: 1px solid #555;
     width: 80%;
     max-width: 500px;
     border-radius: 10px;
     position: relative;
+    color: #e0e0e0;
 }
 
 #journeyModal .close {
-    color: #aaa;
+    color: #bbb;
     float: right;
     font-size: 28px;
     font-weight: bold;
@@ -426,20 +432,12 @@ td a:hover {
 
 #journeyModal .close:hover,
 #journeyModal .close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-#journeyOptions {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 20px;
+    color: white;
 }
 
 .journeyOption {
     padding: 10px;
-    background-color: #FF0000;
+    background-color: #d32f2f;
     color: #ffffff;
     border-radius: 5px;
     cursor: pointer;
@@ -449,38 +447,11 @@ td a:hover {
 }
 
 .journeyOption:hover {
-    background-color: #c0392b;
+    background-color: #b71c1c;
 }
 
-.journeyOption:active {
-    transform: scale(0.95);
-}
-
-/* Loading Overlay */
 #loadingOverlay {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    z-index: 1000; /* On top of all other elements */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-/* Loading GIF */
-#loadingOverlay img {
-    width: 100px; /* Adjust the size as needed */
-    height: 100px;
-}
-
-/* Blur background when loading overlay is active */
-body.loading #content {
-    filter: blur(5px); /* Blur the background */
-    pointer-events: none; /* Disable interactions */
+    background-color: rgba(0, 0, 0, 0.6);
 }
 
 #stopsContainer {
@@ -496,12 +467,11 @@ body.loading #content {
     align-items: flex-start;
     position: relative;
     width: 90%;
-    margin-left: 0 px;
 }
 
 .line {
     width: 8px;
-    background-color: #c0392b;
+    background-color: #d32f2f;
     position: absolute;
     top: 0;
     bottom: 0;
@@ -514,24 +484,24 @@ body.loading #content {
     align-items: center;
     position: relative;
     margin: 10px 0;
-    background-color: #f9f9f9; /* Light background for box */
-    border: 2px solid #c0392b;
+    background-color: #1e1e1e;
+    border: 2px solid #d32f2f;
     border-radius: 10px;
     padding: 10px 15px;
     width: 100%;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 2px 2px 2px rgba(255, 0, 0, 0.2);
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .stopItem:hover {
-    background-color: #eef7ff;
-    box-shadow: 3px 3px 10px rgba(255, 0, 0, 0.2);
+    background-color: #292929;
+    box-shadow: 3px 3px 10px rgba(255, 0, 0, 0.4);
 }
 
 .stopCircle {
     width: 20px;
     height: 20px;
-    background-color: #c0392b;
+    background-color: #d32f2f;
     border-radius: 50%;
     z-index: 2;
     position: relative;
@@ -541,12 +511,12 @@ body.loading #content {
 
 .stopLabel {
     font-size: 16px;
-    color: #333;
+    color: #e0e0e0;
     cursor: pointer;
     text-decoration: none;
 }
 
-.backButton, #themeToggle, #showFlag {
+.backButton {
     background-color: #007bff;
     color: white;
     padding: 10px 15px;
@@ -555,22 +525,8 @@ body.loading #content {
     cursor: pointer;
     margin: 10px 0;
     font-size: 14px;
-    transition: opacity 0.3s ease;
 }
 
-@media only screen and (max-width: 800px) {
-    .backButton, #themeToggle, #showFlag {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px 5px 5px 5px;
-        cursor: pointer;
-        margin: 1;
-        font-size: 14px;
-        transition: opacity 0.3s ease;
-    }
-}
-
-.backButton:hover, #themeToggle:hover, #showFlag:hover {
+.backButton:hover {
     background-color: #0056b3;
 }

@@ -548,7 +548,16 @@ function openMapModal(busLat, busLon, busLine, busRef) {
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        var marker = L.marker([busLat, busLon]).addTo(map);
+        // Define custom icon
+        var busIcon = L.icon({
+            iconUrl: './img/bus-icon.png', // Ensure this path is correct
+            iconSize: [40, 40], // Size of the icon
+            iconAnchor: [20, 40], // Point of the icon which corresponds to marker's location
+            popupAnchor: [0, -40] // Point from which the popup should open relative to the iconAnchor
+        });
+
+        // Add custom icon marker
+        var marker = L.marker([busLat, busLon], { icon: busIcon }).addTo(map);
 
         // Hide map loading animation once the map is fully loaded
         map.on('load', function() {
@@ -628,3 +637,49 @@ $('#stopIdInput').keypress(function(event) {
         fetchBusData();
     }
 });
+
+// Check and apply the saved theme on page load
+window.addEventListener('load', function () {
+    const darkModeStylesheet = document.getElementById('darkModeStylesheet');
+    const themeToggleButton = document.getElementById('themeToggle');
+    
+    // Check if the theme preference is saved in localStorage
+    const savedTheme = localStorage.getItem('theme');
+    
+    if (savedTheme === 'dark' && !darkModeStylesheet) {
+        // Apply dark mode if saved preference is dark
+        const link = document.createElement('link');
+        link.id = 'darkModeStylesheet';
+        link.rel = 'stylesheet';
+        link.href = './styledark.css';
+        document.head.appendChild(link);
+        themeToggleButton.textContent = "Switch to Light Mode";
+    } else {
+        // Apply light mode by default
+        themeToggleButton.textContent = "Switch to Dark Mode";
+    }
+});
+
+// Function to toggle between light and dark mode
+function toggleTheme() {
+    const themeToggleButton = document.getElementById('themeToggle');
+    const darkModeStylesheet = document.getElementById('darkModeStylesheet');
+    
+    if (darkModeStylesheet) {
+        // Remove dark mode stylesheet
+        darkModeStylesheet.remove();
+        themeToggleButton.textContent = "Switch to Dark Mode";
+        // Save the theme preference in localStorage
+        localStorage.setItem('theme', 'light');
+    } else {
+        // Add dark mode stylesheet
+        const link = document.createElement('link');
+        link.id = 'darkModeStylesheet';
+        link.rel = 'stylesheet';
+        link.href = './styledark.css';
+        document.head.appendChild(link);
+        themeToggleButton.textContent = "Switch to Light Mode";
+        // Save the theme preference in localStorage
+        localStorage.setItem('theme', 'dark');
+    }
+}

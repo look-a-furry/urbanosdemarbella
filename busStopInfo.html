@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Bus Stop Information</title>
+  <link rel="icon" type="image/png" href="./img/stop-button.png">
+  <link rel="stylesheet" href="./style.css">
+  <!-- Include Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <!-- Include jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  <!-- Include Leaflet JS -->
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Your main script -->
+  <script src="./script.js"></script>
+</head>
+<body>
+  <h2>Bus Stop Information</h2>
+  <!-- Hidden input to hold the stop ID -->
+  <input type="hidden" id="stopIdInput">
+  <br>
+  <table id="busTable">
+    <thead>
+      <tr>
+        <th colspan="4" id="stopInfoHeader"></th>
+      </tr>
+      <tr>
+        <th><img src="./img/bus.png" alt="Bus Line" id="icon"></th>
+        <th><img src="./img/clock.png" alt="Arrival Time" id="icon"></th>
+        <th><img src="./img/destination.png" alt="Destination" id="icon"></th>
+        <th><img src="./img/map.png" alt="Location" id="icon"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Data will be inserted here dynamically -->
+    </tbody>
+  </table>
+  <!-- Modal structure for the map -->
+    <div id="mapModal" class="modal" style="display: none;">
+      <div class="modal-content">
+          <span class="close">&times;</span>
+          <h2>Bus Location</h2>
+          <div id="mapContainer"></div>
+      </div>
+    </div>
+  <div id="loadingText"></div>
+  <script>
+    $(document).ready(function() {
+      // Parse the stopId from the URL query string
+      const urlParams = new URLSearchParams(window.location.search);
+      const stopId = urlParams.get('stopId');
+      if (stopId) {
+        // Set the hidden field value so fetchBusData() can use it
+        $('#stopIdInput').val(stopId);
+        // Call your API function to display the bus stop information
+        fetchBusData();
+      } else {
+        alert("No stop ID provided in the URL.");
+      }
+    });
+  </script>
+</body>
+</html>

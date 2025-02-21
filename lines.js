@@ -1,10 +1,10 @@
 $(document).ready(function() {
-        const $element = $('#your-element-id');
+        const $element = $('#test');
     if ($element.length > 0) {
         const value = $element.val();
         console.log(value);
     } else {
-        console.error('Element with ID "your-element-id" does not exist');
+        console.error('Element with ID '+$element+' does not exist');
     }
     const API_BASE_URL = 'https://apisvt.avanzagrupo.com/lineas/';
     const LINES_API_URL = API_BASE_URL + 'getLineas?empresa=10-21&N=1';
@@ -188,9 +188,6 @@ $(document).ready(function() {
         const stopsContainer = $('#stopsContainer');
         stopsContainer.empty(); // Clear previous stops
     
-       // const title = $('<h3>').text(`Stops for ${journeyType === 'ida' ? 'Outbound' : 'Return'} Journey`);
-       // stopsContainer.append(title);
-    
         // Create the bus line diagram container
         const diagramContainer = $('<div>').addClass('busLineDiagram');
         const line = $('<div>').addClass('line');
@@ -203,25 +200,27 @@ $(document).ready(function() {
             const stopCircle = $('<div>').addClass('stopCircle');
             stopItem.append(stopCircle);
     
-            // Stop label as a clickable link
-            const stopLabel = $('<span>').addClass('stopLabel').text(stop.properties.nombre);
+            // Extract the stop ID and stop name from the API response.
+            // (Assumes that each stop object has "id" (number as a string) and "nombre" properties.)
+            const stopId = stop.properties.id;      // Numeric stop id provided by the API
+            const stopName = stop.properties.nombre;  // Stop name
     
-            // Click event to open Google Maps with the stop coordinates
-            stopLabel.click(function () {
-                const latitude = stop.geometry.coordinates[1];
-                const longitude = stop.geometry.coordinates[0];
-                const googleMapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                window.open(googleMapsUrl, '_blank');
-            });
+            // Create a clickable label showing the stop id and name
+            const stopLabel = $('<span>')
+                .addClass('stopLabel')
+                .text(`${stopId} - ${stopName}`)
+                .click(function () {
+                    // Redirect to the bus stop info page with the stop id as a query parameter
+                    window.location.href = `busStopInfo.html?stopId=${encodeURIComponent(stopId)}`;
+                });
     
             stopItem.append(stopLabel);
-    
             diagramContainer.append(stopItem);
         });
     
         stopsContainer.append(diagramContainer);
     }
-        
+                
     // Function to open the map modal and show stop location using OpenStreetMap
     function openStopLocationModal(lat, lon) {
         const modal = $('#stopLocationModal');
