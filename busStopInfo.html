@@ -16,8 +16,10 @@
 </head>
 <body>
   <h2>Bus Stop Information</h2>
+  <a href="./index.html" style="display:inline-block; margin: 8px 0 4px; color:#007bff; font-size:0.95em;">&larr; Back to Home</a>
   <!-- Hidden input to hold the stop ID -->
   <input type="hidden" id="stopIdInput">
+  <div id="updateStatus"></div>
   <br>
   <table id="busTable">
     <thead>
@@ -25,24 +27,33 @@
         <th colspan="4" id="stopInfoHeader"></th>
       </tr>
       <tr>
-        <th><img src="./img/bus.png" alt="Bus Line" id="icon"></th>
-        <th><img src="./img/clock.png" alt="Arrival Time" id="icon"></th>
-        <th><img src="./img/destination.png" alt="Destination" id="icon"></th>
-        <th><img src="./img/map.png" alt="Location" id="icon"></th>
+        <th><img src="./img/bus.png" alt="Bus Line" class="icon"></th>
+        <th><img src="./img/clock.png" alt="Arrival Time" class="icon"></th>
+        <th><img src="./img/destination.png" alt="Destination" class="icon"></th>
+        <th><img src="./img/map.png" alt="Location" class="icon"></th>
       </tr>
     </thead>
     <tbody>
       <!-- Data will be inserted here dynamically -->
     </tbody>
   </table>
+  <p id="timestamp"></p>
+  <button id="shareStopBtn" onclick="shareStopUrl()">Copy link &#x2398;</button>
   <!-- Modal structure for the map -->
-    <div id="mapModal" class="modal" style="display: none;">
-      <div class="modal-content">
-          <span class="close">&times;</span>
-          <h2>Bus Location</h2>
-          <div id="mapContainer"></div>
-      </div>
+  <div id="mapModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Bus Location</h2>
+        <div id="mapContainer"></div>
     </div>
+  </div>
+  <!-- Custom error dialog -->
+  <div id="customDialog" class="modal">
+    <div class="modal-content">
+        <span class="close-dialog">&times;</span>
+        <p id="dialogMessage"></p>
+    </div>
+  </div>
   <div id="loadingText"></div>
   <script>
     $(document).ready(function() {
@@ -58,6 +69,18 @@
         alert("No stop ID provided in the URL.");
       }
     });
+
+    function shareStopUrl() {
+      var url = window.location.href;
+      navigator.clipboard.writeText(url).then(function() {
+        var btn = document.getElementById('shareStopBtn');
+        var original = btn.textContent;
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.textContent = original; }, 2000);
+      }).catch(function() {
+        prompt('Copy this link:', url);
+      });
+    }
   </script>
 </body>
 </html>

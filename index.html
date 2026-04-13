@@ -31,13 +31,13 @@
         <button onclick="fetchBusData()">Query</button>
     </div>
     <br>
-    <button id="largebutton" onclick="showFavorites()">View Favorites ★</button>
+    <button class="largebutton" onclick="showFavorites()">View Favorites ★</button>
 
     <br> <br>
-    <button id="largebutton" onclick="searchNearbyStops()">Search Nearby Stops ⎆</button>
-    <p style="font-size: 12px;">(Location permission requiered)</p>
+    <button class="largebutton" onclick="searchNearbyStops()">Search Nearby Stops ⎆</button>
+    <p style="font-size: 12px;">(Location permission required)</p>
 
-    <a href="./lines.html"><button id="largebutton">View all Urban Lines ⎆ (beta)</button></a> <br>
+    <a href="./lines.html"><button class="largebutton">View all Urban Lines ⎆ (beta)</button></a> <br>
 
     <div id="loadingText"></div>
     
@@ -51,10 +51,10 @@
                 <th colspan="4" id="stopInfoHeader"></th>
             </tr>
             <tr>
-                <th> <img src="./img/bus.png" alt="Bus Line" id="icon"> </th>
-                <th> <img src="./img/clock.png" alt="Arrival Time" id="icon"> </th>
-                <th> <img src="./img/destination.png" alt="destination" id="icon"> </th>
-                <th> <img src="./img/map.png" alt="Location" id="icon"> </th>
+                <th> <img src="./img/bus.png" alt="Bus Line" class="icon"> </th>
+                <th> <img src="./img/clock.png" alt="Arrival Time" class="icon"> </th>
+                <th> <img src="./img/destination.png" alt="destination" class="icon"> </th>
+                <th> <img src="./img/map.png" alt="Location" class="icon"> </th>
             </tr>
         </thead>
         <tbody>
@@ -70,6 +70,14 @@
             <span class="close">&times;</span>
             <h2>Bus Location</h2>
             <div id="mapContainer"></div>
+        </div>
+    </div>
+
+    <!-- Custom error dialog -->
+    <div id="customDialog" class="modal">
+        <div class="modal-content">
+            <span class="close-dialog">&times;</span>
+            <p id="dialogMessage"></p>
         </div>
     </div>
 

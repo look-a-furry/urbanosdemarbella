@@ -68,7 +68,7 @@ button:hover {
     background-color: #c0392b; /* Darker red on hover */
 }
 
-#largebutton {
+.largebutton {
     width: 100%;
     padding: 8px;
     font-size: 1em;
@@ -80,11 +80,11 @@ button:hover {
     transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
 }
 
-#largebutton:active {
+.largebutton:active {
     transform: scale(0.95); /* Scale down the button when clicked */
 }
 
-#largebutton:hover {
+.largebutton:hover {
     background-color: #c0392b; /* Darker red on hover */
 }
 
@@ -245,12 +245,44 @@ td a:hover {
 
 #legaltext {
     text-align: center;
-    font-size: 12px;    
+    font-size: 12px;
 }
 
-#icon {
-    width: 25px;
-    height: 25px;
+#openStopPage {
+    display: block;
+    margin-top: 8px;
+    text-align: center;
+    color: #FF0000;
+    font-weight: bold;
+    text-decoration: none;
+    font-size: 0.95em;
+}
+
+#openStopPage:hover {
+    color: #c0392b;
+}
+
+.stopDistance {
+    font-size: 0.85em;
+    color: #777;
+    margin-left: 6px;
+}
+
+#shareStopBtn {
+    margin-left: 10px;
+    padding: 4px 10px;
+    font-size: 0.85em;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    vertical-align: middle;
+    transition: background-color 0.3s;
+}
+
+#shareStopBtn:hover {
+    background-color: #0056b3;
 }
 
 .icon {
@@ -287,7 +319,8 @@ td a:hover {
 }
 
 /* The Close Button */
-.close {
+.close,
+.close-dialog {
     color: #aaa;
     float: right;
     font-size: 28px;
@@ -299,7 +332,9 @@ td a:hover {
 }
 
 .close:hover,
-.close:focus {
+.close:focus,
+.close-dialog:hover,
+.close-dialog:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;

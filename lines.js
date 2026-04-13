@@ -1,11 +1,4 @@
 $(document).ready(function() {
-        const $element = $('#test');
-    if ($element.length > 0) {
-        const value = $element.val();
-        console.log(value);
-    } else {
-        console.error('Element with ID '+$element+' does not exist');
-    }
     const API_BASE_URL = 'https://apisvt.avanzagrupo.com/lineas/';
     const LINES_API_URL = API_BASE_URL + 'getLineas?empresa=10-21&N=1';
 
@@ -40,7 +33,7 @@ $(document).ready(function() {
 
                     lineElement.append(lineSymbol).append(lineName);
                     lineElement.click(function() {
-                        fetchLineDetails(line.id); // Fetch line details when clicked
+                        showJourneyModal(line.id); // Show journey selection directly
                     });
 
                     linesContainer.append(lineElement);
@@ -58,66 +51,39 @@ $(document).ready(function() {
         }
     });
 
-    // Function to fetch line details and show the journey selection dialog
-    function fetchLineDetails(lineId) {
-        showLoadingOverlay(); // Show loading for line details
-        const stopsApiUrl = `${API_BASE_URL}getDetalleLinea?empresa=10-21&linea=${lineId}`;
-
-        $.ajax({
-            url: stopsApiUrl,
-            type: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                hideLoadingOverlay(); // Hide after response
-                if (response.status === 'ok') {
-                    const lineDetails = response.data;
-                    showJourneyModal(lineId); // Show the journey selection prompt
-                } else {
-                    console.error('Failed to load line details:', response);
-                    $('#linesContainer').text('Failed to load line details. Please try again later.');
-                }
-            },
-            error: function(xhr, status, error) {
-                hideLoadingOverlay(); // Hide on error
-                console.error('Error fetching line details:', error);
-                $('#linesContainer').text('Error fetching line details. Please check your connection.');
-            }
-        });
-    }
-
     // Function to show the journey selection modal
     function showJourneyModal(lineId) {
         const journeyModal = $('#journeyModal');
         const journeyOptions = $('#journeyOptions');
-    
+
         // Clear any previous options
         journeyOptions.empty();
-    
+
         // Add "Ida" option
         const idaOption = $('<div>').addClass('journeyOption').text('Outbound Journey').click(function () {
             journeyModal.hide();
             fetchStopsForJourney(lineId, 'ida');
             hideAllLines();
         });
-    
+
         // Add "Vuelta" option
         const vueltaOption = $('<div>').addClass('journeyOption').text('Return Journey').click(function () {
             journeyModal.hide();
             fetchStopsForJourney(lineId, 'vuelta');
             hideAllLines();
         });
-    
+
         // Append options to the modal
         journeyOptions.append(idaOption).append(vueltaOption);
-    
+
         // Show the modal
         journeyModal.show();
-    
+
         // Handle closing the modal
         $('.close').click(function () {
             journeyModal.hide();
         });
-    
+
         // Close the modal when clicking outside of the modal content
         $(window).click(function (event) {
             if (event.target == journeyModal[0]) {
@@ -125,19 +91,13 @@ $(document).ready(function() {
             }
         });
     }
-    
+
     function hideAllLines() {
         $('#linesContainer').hide(); // Hide all lines
         $('#stopsContainer').show(); // Show stops container
         ensureBackButton(); // Ensure back button appears at the top
     }
-    
-    function hideAllLines() {
-        $('#linesContainer').hide(); // Hide all lines
-        $('#stopsContainer').show(); // Show stops container
-        ensureBackButton(); // Ensure the back button is added
-    }
-    
+
     function ensureBackButton() {
         // Check if the button already exists to avoid duplicates
         if ($('#backButton').length === 0) {
@@ -150,7 +110,7 @@ $(document).ready(function() {
                     $('#stopsContainer').hide(); // Hide the stops view
                     backButton.remove(); // Remove the back button
                 });
-    
+
             // Append below "Available Bus Lines" heading
             $('h2').after(backButton);
         }
@@ -187,24 +147,24 @@ $(document).ready(function() {
     function displayStops(stops, journeyType) {
         const stopsContainer = $('#stopsContainer');
         stopsContainer.empty(); // Clear previous stops
-    
+
         // Create the bus line diagram container
         const diagramContainer = $('<div>').addClass('busLineDiagram');
         const line = $('<div>').addClass('line');
         diagramContainer.append(line);
-    
+
         stops.forEach(function(stop) {
             const stopItem = $('<div>').addClass('stopItem');
-    
+
             // Stop marker (circle)
             const stopCircle = $('<div>').addClass('stopCircle');
             stopItem.append(stopCircle);
-    
+
             // Extract the stop ID and stop name from the API response.
             // (Assumes that each stop object has "id" (number as a string) and "nombre" properties.)
             const stopId = stop.properties.id;      // Numeric stop id provided by the API
             const stopName = stop.properties.nombre;  // Stop name
-    
+
             // Create a clickable label showing the stop id and name
             const stopLabel = $('<span>')
                 .addClass('stopLabel')
@@ -213,14 +173,14 @@ $(document).ready(function() {
                     // Redirect to the bus stop info page with the stop id as a query parameter
                     window.location.href = `busStopInfo.html?stopId=${encodeURIComponent(stopId)}`;
                 });
-    
+
             stopItem.append(stopLabel);
             diagramContainer.append(stopItem);
         });
-    
+
         stopsContainer.append(diagramContainer);
     }
-                
+
     // Function to open the map modal and show stop location using OpenStreetMap
     function openStopLocationModal(lat, lon) {
         const modal = $('#stopLocationModal');

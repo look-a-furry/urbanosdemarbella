@@ -1,7 +1,6 @@
 var loadingAnimationId;
 
 // Global state object to track the modal status and bus line
-var loadingAnimationId;
 var updateIntervalId;
 var modalState = {
     isOpen: false,
@@ -174,11 +173,6 @@ function haversineDistance(coord1, coord2) {
     return distance;
 }
 
-// Function to convert degrees to radians
-function deg2rad(deg) {
-    return deg * (Math.PI / 180);
-}
-
 function searchBusStop() {
     // Show loading text
     showLoadingText();
@@ -306,7 +300,11 @@ function displayMatchingStops(stops, userCoordinates) {
                 });
 
                 // Append the image and text to the link
+                var distanceLabel = (userCoordinates && stop.distance > 0)
+                    ? $('<span>').addClass('stopDistance').text(Math.round(stop.distance) + ' m away')
+                    : null;
                 headerLink.append(extLinkImg).append(' Stop ID: ' + stop.cod + ' - ' + stop.ds);
+                if (distanceLabel) headerLink.append(distanceLabel);
 
                 // Add "Add to Favorites" button
                 var addToFavoritesButton = $('<button>').text('Add to Favorites ★').click(function () {
@@ -397,6 +395,10 @@ function showFavorites() {
     // Create a custom dialog for displaying favorites
     var favoritesDialog = $('<div>').addClass('favoritesDialog');
     favoritesDialog.append($('<h3>').text('Favorites ★'));
+
+    if (favorites.length === 0) {
+        favoritesDialog.append($('<p>').text('No favorites saved yet. Add stops using the \u2605 button.').css('color', '#777'));
+    }
 
     // Display each favorite stop with a clickable link and remove button
     favorites.forEach(function (favorite) {
@@ -502,7 +504,16 @@ function fetchBusData(updateMap) {
                 });
 
                 $('#timestamp').text('Date: ' + formatDate(response.fxSistema) + ' Last update took: ' + response.time + ' ms');
-                $('#updateStatus').text('Up to date ✔').css('color', '#27ae60'); // Green color
+                $('#updateStatus').text('Up to date \u2714').css('color', '#27ae60'); // Green color
+
+                // Show "Open as dedicated page" link on the main page (not on busStopInfo.html itself)
+                $('#openStopPage').remove();
+                if ($('#searchByName').length) {
+                    $('<a>')
+                        .attr({ id: 'openStopPage', href: './busStopInfo.html?stopId=' + customStopId })
+                        .text('Open dedicated stop page \u2192')
+                        .insertAfter('#busTable');
+                }
 
                 $('.busLocationLink').click(function() {
                     var busLat = $(this).data('lat');
