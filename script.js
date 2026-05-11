@@ -463,7 +463,7 @@ function fetchBusData(updateMap) {
 
     var timeoutId = setTimeout(function() {
         if (!requestCompleted) {
-            showCustomDialog('Error: The request took too long to complete.');
+            // showCustomDialog('Error: The request took too long to complete.');
             $('#updateStatus').text('Error: Timeout').css('color', '#FF0000'); // Red color
         }
     }, API_TIMEOUT);
