@@ -513,14 +513,12 @@ function fetchBusData(updateMap) {
                 });
             } else {
                 // Handle cases where response data or parada is missing
-                showCustomDialog('Error: Invalid or missing data from the API.');
                 $('#updateStatus').text('Error: Invalid or missing data').css('color', '#FF0000'); // Red color
             }
         },
         error: function() {
             requestCompleted = true;
             clearTimeout(timeoutId);
-            showCustomDialog('Error: Could not fetch data from the API.');
             $('#updateStatus').text('Error: Could not fetch data').css('color', '#FF0000'); // Red color
         }
     });
@@ -530,7 +528,7 @@ function fetchBusData(updateMap) {
 function openMapModal(busLat, busLon, busLine, busRef) {
     checkApiStatus(function(isUp) {
         if (!isUp) {
-            showCustomDialog('Error: The API is currently down.');
+            $('#updateStatus').text('Error: The API is currently down.').css('color', '#FF0000');
             return;
         }
 
