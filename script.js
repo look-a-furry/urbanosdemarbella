@@ -27,6 +27,9 @@ var loadedStopId = null;       // stop whose data is currently rendered
 var searchToken = 0;           // same idea for name/nearby stop searches
 var activeMap = null;          // Leaflet instance living in the map modal
 
+var AUTO_REFRESH_MS = 5000;    // delay between a response arriving and the next refresh
+var autoRefreshTimerId = null;
+
 var loadingAnimationId;
 
 function showLoadingText() {
@@ -496,6 +499,10 @@ function fetchBusData() {
     }
     var token = ++stopRequestToken;
 
+    // The next auto-refresh is armed only once this request has answered, so
+    // a pending timer must not fire while the request is in flight.
+    clearTimeout(autoRefreshTimerId);
+
     // Switching to a different stop: drop the previous stop's rows right away
     // so they can never be mistaken for the new stop while the request is
     // pending (or after it fails).
@@ -523,6 +530,8 @@ function fetchBusData() {
                 // Handle cases where response data or parada is missing
                 setUpdateStatus('Error: Invalid or missing data', 'status-err');
             }
+
+            scheduleAutoRefresh();
         },
         error: function(xhr, status) {
             if (token !== stopRequestToken) return; // stale request, discard
@@ -535,6 +544,9 @@ function fetchBusData() {
             } else {
                 setUpdateStatus('Error: Could not fetch data', 'status-err');
             }
+
+            // Failed or not, the response has arrived: arm the next refresh
+            scheduleAutoRefresh();
         }
     });
 }
@@ -648,15 +660,25 @@ function openMapModal(busLat, busLon, busLine, busRef) {
     fetchBusData();
 }
 
-// Auto-refresh the arrivals table. Skips a cycle while a request is still in
-// flight so slow responses cannot pile up in a backlog.
-setInterval(function() {
-    var currentStopId = $('#stopIdInput').val();
-    if (currentStopId && currentStopId.trim() && !activeStopRequest) {
-        setUpdateStatus('Updating...', 'status-neutral');
-        fetchBusData();
-    }
-}, 5000);
+// Auto-refresh the arrivals table. Instead of a fixed interval, the next
+// refresh is armed only after the previous response has arrived — successful
+// or not — so requests can never overlap or pile up while the API is slow.
+function scheduleAutoRefresh() {
+    clearTimeout(autoRefreshTimerId);
+    autoRefreshTimerId = setTimeout(function() {
+        var currentStopId = $('#stopIdInput').val();
+        if (currentStopId && currentStopId.trim() && !activeStopRequest) {
+            setUpdateStatus('Updating...', 'status-neutral');
+            fetchBusData();
+        } else {
+            // No stop selected yet (or a manual query is mid-flight, which
+            // will re-arm on its own completion): check back later.
+            scheduleAutoRefresh();
+        }
+    }, AUTO_REFRESH_MS);
+}
+
+scheduleAutoRefresh();
 
 $(function() {
     // Open the bus location map from the arrivals table (delegated so it
