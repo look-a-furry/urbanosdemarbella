@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bus Stop Information</title>
   <link rel="icon" type="image/png" href="./img/stop-button.png">
   <link rel="stylesheet" href="./style.css">
@@ -16,33 +17,53 @@
 </head>
 <body>
   <h2>Bus Stop Information</h2>
+
+  <div class="topbar">
+    <a href="./lines.html"><button class="backButton">Back to Lines</button></a>
+  </div>
+
   <!-- Hidden input to hold the stop ID -->
   <input type="hidden" id="stopIdInput">
-  <br>
+
+  <div id="updateStatus" class="status-neutral">Loading stop data...</div>
+
+  <p id="timestamp"></p>
+
   <table id="busTable">
     <thead>
       <tr>
         <th colspan="4" id="stopInfoHeader"></th>
       </tr>
       <tr>
-        <th><img src="./img/bus.png" alt="Bus Line" id="icon"></th>
-        <th><img src="./img/clock.png" alt="Arrival Time" id="icon"></th>
-        <th><img src="./img/destination.png" alt="Destination" id="icon"></th>
-        <th><img src="./img/map.png" alt="Location" id="icon"></th>
+        <th><img src="./img/bus.png" alt="Bus Line" class="icon"></th>
+        <th><img src="./img/clock.png" alt="Arrival Time" class="icon"></th>
+        <th><img src="./img/destination.png" alt="Destination" class="icon"></th>
+        <th><img src="./img/map.png" alt="Location" class="icon"></th>
       </tr>
     </thead>
     <tbody>
       <!-- Data will be inserted here dynamically -->
     </tbody>
   </table>
+
   <!-- Modal structure for the map -->
-    <div id="mapModal" class="modal" style="display: none;">
-      <div class="modal-content">
-          <span class="close">&times;</span>
-          <h2>Bus Location</h2>
-          <div id="mapContainer"></div>
-      </div>
+  <div id="mapModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Bus Location</h2>
+        <div id="mapLoadingOverlay">Loading map...</div>
+        <div id="mapContainer"></div>
     </div>
+  </div>
+
+  <!-- Custom dialog for error / info messages -->
+  <div id="customDialog" class="modal">
+    <div class="modal-content">
+      <span class="close-dialog">&times;</span>
+      <p id="dialogMessage"></p>
+    </div>
+  </div>
+
   <div id="loadingText"></div>
   <script>
     $(document).ready(function() {

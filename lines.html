@@ -15,7 +15,11 @@
 <body>
 
     <h2>Available Bus Lines</h2>
-    <br>
+
+    <div class="topbar">
+        <a href="./index.html"><button class="backButton">Back to Arrival Times</button></a>
+    </div>
+
     <div id="linesContainer"></div>
     <div id="stopsContainer"></div>
 
@@ -30,6 +34,14 @@
 
     <div id="loadingOverlay">
         <img src="./img/loading.gif" alt="Loading...">
+    </div>
+
+    <!-- Custom dialog for error / info messages -->
+    <div id="customDialog" class="modal">
+        <div class="modal-content">
+            <span class="close-dialog">&times;</span>
+            <p id="dialogMessage"></p>
+        </div>
     </div>
 
     <!-- Stop Location Modal -->
