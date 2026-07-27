@@ -1,131 +1,291 @@
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #ffffff;
-    margin: 20px auto;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    max-width: 800px;
+/* ==========================================================================
+   Urbanos de Marbella — square flat theme
+   Sharp corners, hard rules, transit-signage typography. The dark theme
+   (styledark.css) only overrides the custom properties below.
+   ========================================================================== */
+
+:root {
+    --bg: #f1efe9;          /* paper */
+    --surface: #ffffff;     /* cards, table, dialogs */
+    --ink: #16150f;         /* text + rules */
+    --muted: #6b665c;       /* secondary text */
+    --line: #16150f;        /* border color */
+    --accent: #d81f26;      /* transit red */
+    --accent-dark: #a3131a;
+    --accent-ink: #ffffff;  /* text on accent */
+    --ok: #1d7a3a;
+    --err: #c8102e;
+    --mono: "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
 }
 
-body, h2, #busTable, #busTable th, #busTable td {
-    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+* {
+    box-sizing: border-box;
 }
+
+html {
+    background-color: var(--bg);
+}
+
+body {
+    font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg);
+    color: var(--ink);
+    margin: 0 auto;
+    padding: 20px 20px 40px;
+    max-width: 780px;
+    line-height: 1.45;
+}
+
+body, h2, button, input, table, th, td {
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+/* --------------------------------------------------------------------------
+   Page header
+   -------------------------------------------------------------------------- */
 
 h2 {
-    background-color: #FF0000; /* Red theme */
-    color: #ffffff;
-    padding: 15px;
-    margin: 0;
-    border-top-left-radius: 10px;
-    border-top-right-radius: 10px;
-    text-align: center;
+    background-color: var(--ink);
+    color: var(--bg);
+    padding: 18px 20px;
+    margin: 0 0 16px;
+    border-bottom: 6px solid var(--accent);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 1.35em;
+    font-weight: 800;
 }
 
-@media screen and (max-width: 800px) {
-    h2 {
-        margin-bottom: 10px;
-    }
+h3, h4 {
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 12px;
 }
 
-#searchByName,
-#customStopId {
-    margin-top: 20px;
-}
+/* --------------------------------------------------------------------------
+   Controls
+   -------------------------------------------------------------------------- */
 
 label {
-    font-size: 1.2em;
-    font-weight: bold;
-    margin-right: 10px;
+    display: block;
+    font-size: 0.75em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
+    color: var(--muted);
 }
 
 input {
-    font-style: italic;
     width: 60%;
-    padding: 8px;
+    padding: 10px 12px;
     font-size: 1em;
-    margin-right: 10px;
-    border-radius: 10px;
-    border: 1px solid #333;
+    font-family: var(--mono);
+    margin-right: 8px;
+    border-radius: 0;
+    border: 2px solid var(--line);
+    background-color: var(--surface);
+    color: var(--ink);
+}
+
+input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 3px 3px 0 var(--accent);
 }
 
 button {
-    padding: 8px;
-    font-size: 1em;
-    background-color: #FF0000; /* Red theme */
-    color: #ffffff;
-    border: none;
-    border-radius: 5px;
+    appearance: none;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    border: 2px solid var(--line);
+    border-radius: 0;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
-}
-
-button:active {
-    transform: scale(0.95); /* Scale down the button when clicked */
+    box-shadow: 3px 3px 0 var(--line);
+    transition: background-color 0.15s, transform 0.1s, box-shadow 0.1s;
 }
 
 button:hover {
-    background-color: #c0392b; /* Darker red on hover */
+    background-color: var(--accent-dark);
 }
 
-#largebutton {
+button:active {
+    transform: translate(3px, 3px);
+    box-shadow: none;
+}
+
+/* Small utility buttons in the top bar */
+.topbar {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+#themeToggle, #showFlag, .backButton {
+    background-color: var(--surface);
+    color: var(--ink);
+    padding: 8px 14px;
+    border: 2px solid var(--line);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--line);
+    font-size: 0.75em;
+}
+
+#themeToggle:hover, #showFlag:hover, .backButton:hover {
+    background-color: var(--ink);
+    color: var(--bg);
+}
+
+.backButton {
+    margin: 0 0 16px;
+}
+
+/* Search panels */
+#searchByName,
+#customStopId {
+    margin-top: 16px;
+    padding: 16px;
+    border: 2px solid var(--line);
+    background-color: var(--surface);
+}
+
+.actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.largebutton {
     width: 100%;
-    padding: 8px;
-    font-size: 1em;
-    background-color: #FF0000; /* Red theme */
-    color: #ffffff;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
+    padding: 12px;
+    font-size: 0.85em;
 }
 
-#largebutton:active {
-    transform: scale(0.95); /* Scale down the button when clicked */
+.hint {
+    font-size: 0.75em;
+    color: var(--muted);
+    margin: 6px 0 0;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-#largebutton:hover {
-    background-color: #c0392b; /* Darker red on hover */
+/* --------------------------------------------------------------------------
+   Status + timestamp
+   -------------------------------------------------------------------------- */
+
+#updateStatus {
+    margin-top: 20px;
+    padding: 10px 14px;
+    border: 2px solid var(--line);
+    border-left: 8px solid var(--accent);
+    background-color: var(--surface);
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
 }
 
-#stopInfo,
+#updateStatus.status-ok {
+    color: var(--ok);
+    border-left-color: var(--ok);
+}
+
+#updateStatus.status-err {
+    color: var(--err);
+    border-left-color: var(--err);
+}
+
+#updateStatus.status-neutral {
+    color: var(--muted);
+    border-left-color: var(--muted);
+}
+
 #timestamp {
-    background-color: #ffffff;
-    padding: 10px;
-    margin-top: 10px;
-    border-radius: 5px;
+    font-family: var(--mono);
+    font-size: 0.75em;
+    color: var(--muted);
+    margin: 12px 0 0;
 }
+
+#loadingText {
+    display: none;
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 0.8em;
+    color: var(--muted);
+}
+
+/* --------------------------------------------------------------------------
+   Arrivals table
+   -------------------------------------------------------------------------- */
 
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
-    background-color: #ffffff;
-    color: #333;
-    border-radius: 5px;
+    margin-top: 16px;
+    background-color: var(--surface);
+    color: var(--ink);
+    border: 2px solid var(--line);
 }
 
 th,
 td {
-    border: 1px solid #ddd;
+    border: 1px solid var(--line);
     padding: 12px;
     text-align: center;
 }
 
 th {
-    background-color: #FF0000; /* Red theme */
-    color: #ffffff;
+    background-color: var(--accent);
+    color: var(--accent-ink);
+}
+
+#stopInfoHeader {
+    background-color: var(--ink);
+    color: var(--bg);
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-family: var(--mono);
+    font-size: 0.85em;
+    border-bottom: 4px solid var(--accent);
+}
+
+.cellLine {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: 1.1em;
+}
+
+.cellTime {
+    font-family: var(--mono);
+    font-weight: 700;
 }
 
 td a {
-    color: #FF0000; /* Red theme */
+    color: var(--accent);
     text-decoration: none;
     font-weight: bold;
-    transition: color 0.3s; /* Add transition effect */
+    transition: color 0.2s;
 }
 
 td a:hover {
-    color: #c0392b; /* Darker red */
+    color: var(--accent-dark);
+}
+
+/* --------------------------------------------------------------------------
+   Stop search results
+   -------------------------------------------------------------------------- */
+
+#stopInfo {
+    margin-top: 10px;
 }
 
 .stopHeader {
@@ -134,262 +294,144 @@ td a:hover {
     margin-bottom: 10px;
 }
 
-.stopCoordinates a {
-    color: #FF0000; /* Red theme */
-    text-decoration: none;
-    font-weight: bold;
-    transition: color 0.3s; /* Add transition effect */
-}
-
-.stopCoordinates a:hover {
-    color: #c0392b; /* Darker red */
-}
-
-.lineSymbol {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: #FF0000; /* Red theme */
-    margin: 2px;
-    text-align: center;
-    line-height: 20px;
-    color: #ffffff;
-}
-
 .stopInfoTable {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 5px;
+    margin: 0 0 14px;
+    border: 2px solid var(--line);
 }
 
 .stopInfoTable th,
 .stopInfoTable td {
     padding: 12px;
     border-style: none;
+    text-align: left;
+}
+
+.stopInfoTable th {
+    background-color: var(--ink);
+    color: var(--bg);
+    border-bottom: 4px solid var(--accent);
 }
 
 .stopInfoTable th a {
-    color: #ffffff; /* White color for the link */
-    text-decoration: none; /* Remove underline */
-}
-
-.lineSymbol {
-    display: inline-block;
-    width: 38px; /* Adjust the width as needed */
-    height: 38px; /* Adjust the height as needed */
-    border-radius: 15%;
-    background-color: #FF0000; /* Red theme */
-    margin-right: 2px;
-    text-align: center;
-    line-height: 38px;
-    color: #ffffff;
-    font-size: 12px; /* Adjust the font size as needed */
-}
-
-#updateStatus {
-    font-size: 1.2em;
-    margin-top: 10px;
-    color: #27ae60; /* Green */
-}
-
-#loadingText {
-    display: none;
-}
-
-.favoritesDialog {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background-color: white;
-    padding: 20px;
-    border: 2px solid #fd3131;
-    border-radius: 15px;
-    z-index: 9999;
-    max-height: 80%;
-    overflow-y: auto;
-}
-
-.favoriteStopInfo {
-    margin-bottom: 20px;
-}
-
-.favoriteStopInfo h4 {
-    margin-bottom: 5px;
-}
-
-.favoriteStopInfo p {
-    font-size: 12px;
-    color: #555;
-}
-
-.favoritesDialog button {
-    background-color: #333;
-    color: white;
-    padding: 5px 10px;
-    border: none;
-    cursor: pointer;
-    font-size: 14px;
-    margin-top: 10px;
-    transition: background-color 0.3s, transform 0.1s; /* Add transition effects */
-}
-
-.favoritesDialog button:active {
-    transform: scale(0.95); /* Scale down the button when clicked */
-}
-
-.favoritesDialog button:hover {
-    background-color: #555;
-}
-
-#legaltext {
-    text-align: center;
-    font-size: 12px;    
-}
-
-#icon {
-    width: 25px;
-    height: 25px;
-}
-
-.icon {
-    width: 25px;
-    height: 25px;
-}
-
-
-/* The Modal (background) */
-.modal {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1000; /* Sit on top */
-    left: 0;
-    top: 0;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-    padding-top: 60px;
-}
-
-/* Modal Content/Box */
-.modal-content {
-    background-color: #fefefe;
-    margin: 5% auto; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%; /* Could be more or less, depending on screen size */
-    max-width: 600px;
-    border-radius: 10px;
-    position: relative;
-}
-
-/* The Close Button */
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    cursor: pointer;
-}
-
-.close:hover,
-.close:focus {
-    color: black;
+    color: inherit;
     text-decoration: none;
-    cursor: pointer;
-}
-
-#mapContainer {
-    width: 100%;
-    height: 400px; /* Adjust the height as needed */
-}
-
-/* For mobile responsiveness */
-@media only screen and (max-width: 800px) {
-    .modal-content {
-        width: 90%;
-    }
-    #mapContainer {
-        height: 300px; /* Adjust the height for mobile screens */
-    }
-}
-
-
-/* Mobile Styles */
-@media only screen and (max-width: 800px) {
-    input {
-        width: 96%;
-        margin-bottom: 10px;
-    }
-    body {
-        margin: 0px;
-    }
-    #timestamp {
-        background-color: #ffffff;
-        padding: 10px;
-        margin-top: 10px;
-        border-radius: 5px;
-        text-align: center;
-    }
-    button {
-        width: 100%;
-        padding: 8px;
-        font-size: 1em;
-        background-color: #FF0000; /* Red theme */
-        color: #ffffff;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-}
-
-/* Styling for the bus lines page */
-#lineContainer {
-    margin-top: 20px;
-}
-
-.lineItem {
-    display: flex;
-    align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    display: block;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
-    transition: background-color 0.3s, transform 0.1s;
+    font-family: var(--mono);
+    font-size: 0.9em;
+    letter-spacing: 0.02em;
 }
 
-.lineItem:hover {
-    background-color: #f1f1f1;
+.stopActions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.stopActions button {
+    font-size: 0.7em;
+    padding: 7px 10px;
+    box-shadow: none;
+}
+
+.stopCoordinates {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8em;
+    letter-spacing: 0.06em;
+    transition: color 0.2s;
+}
+
+.stopCoordinates:hover {
+    color: var(--accent-dark);
 }
 
 .lineSymbol {
     display: inline-block;
     width: 38px;
     height: 38px;
-    border-radius: 15%;
-    margin-right: 15px;
+    border-radius: 0;
+    border: 2px solid var(--line);
+    background-color: var(--accent);
+    margin-right: 4px;
+    margin-bottom: 4px;
     text-align: center;
-    line-height: 38px;
+    line-height: 34px;
     color: #ffffff;
+    font-family: var(--mono);
     font-size: 12px;
     font-weight: bold;
+    vertical-align: middle;
 }
 
-.lineName {
-    font-size: 1.2em;
-    font-weight: bold;
-    color: #333;
+/* --------------------------------------------------------------------------
+   Favorites dialog
+   -------------------------------------------------------------------------- */
+
+.favoritesDialog {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--surface);
+    color: var(--ink);
+    padding: 20px;
+    border: 2px solid var(--line);
+    border-top: 8px solid var(--accent);
+    border-radius: 0;
+    box-shadow: 8px 8px 0 var(--line);
+    z-index: 9999;
+    min-width: 280px;
+    max-width: 90vw;
+    max-height: 80%;
+    overflow-y: auto;
 }
 
-/* Custom Journey Selection Modal */
-#journeyModal {
+.favoriteStopInfo {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+}
+
+.favoriteStopInfo h4 {
+    margin: 0 0 4px;
+}
+
+.favoriteStopInfo h4 a {
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.favoriteStopInfo p {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--muted);
+    margin: 0 0 8px;
+}
+
+.favoritesDialog button {
+    background-color: var(--surface);
+    color: var(--ink);
+    padding: 6px 12px;
+    font-size: 0.7em;
+    box-shadow: none;
+    margin-top: 4px;
+}
+
+.favoritesDialog button:hover {
+    background-color: var(--ink);
+    color: var(--bg);
+}
+
+/* --------------------------------------------------------------------------
+   Modals (map, journey selection, custom dialog)
+   -------------------------------------------------------------------------- */
+
+.modal {
     display: none;
     position: fixed;
     z-index: 1000;
@@ -398,96 +440,150 @@ td a:hover {
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgba(0, 0, 0, 0.4);
+    background-color: rgba(22, 21, 15, 0.6);
     padding-top: 60px;
 }
 
-#journeyModal .modal-content {
-    background-color: #fefefe;
+.modal-content {
+    background-color: var(--surface);
+    color: var(--ink);
     margin: 5% auto;
     padding: 20px;
-    border: 1px solid #888;
+    border: 2px solid var(--line);
+    border-top: 8px solid var(--accent);
     width: 80%;
-    max-width: 500px;
-    border-radius: 10px;
+    max-width: 600px;
+    border-radius: 0;
+    box-shadow: 8px 8px 0 var(--line);
     position: relative;
 }
 
-#journeyModal .close {
-    color: #aaa;
+.modal-content h2 {
+    background: none;
+    color: var(--ink);
+    border-bottom: 2px solid var(--line);
+    padding: 0 0 10px;
+    margin-bottom: 14px;
+    font-size: 1.1em;
+}
+
+.close, .close-dialog {
+    color: var(--muted);
     float: right;
     font-size: 28px;
     font-weight: bold;
     position: absolute;
-    top: 10px;
-    right: 20px;
+    top: 8px;
+    right: 16px;
     cursor: pointer;
+    line-height: 1;
 }
 
-#journeyModal .close:hover,
-#journeyModal .close:focus {
-    color: black;
+.close:hover, .close:focus,
+.close-dialog:hover, .close-dialog:focus {
+    color: var(--accent);
     text-decoration: none;
     cursor: pointer;
 }
 
+#dialogMessage {
+    margin: 8px 0 0;
+    font-weight: 600;
+}
+
+#mapContainer {
+    width: 100%;
+    height: 400px;
+    border: 2px solid var(--line);
+}
+
+#mapLoadingOverlay {
+    display: none;
+    font-family: var(--mono);
+    font-size: 0.8em;
+    color: var(--muted);
+    margin-bottom: 8px;
+}
+
+/* --------------------------------------------------------------------------
+   Journey selection modal (lines page)
+   -------------------------------------------------------------------------- */
+
 #journeyOptions {
     display: flex;
     justify-content: space-around;
+    gap: 12px;
     margin-top: 20px;
 }
 
 .journeyOption {
-    padding: 10px;
-    background-color: #FF0000;
-    color: #ffffff;
-    border-radius: 5px;
+    padding: 12px;
+    background-color: var(--accent);
+    color: var(--accent-ink);
+    border: 2px solid var(--line);
+    border-radius: 0;
+    box-shadow: 3px 3px 0 var(--line);
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s;
+    transition: background-color 0.15s, transform 0.1s, box-shadow 0.1s;
     text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 700;
+    font-size: 0.8em;
     width: 40%;
 }
 
 .journeyOption:hover {
-    background-color: #c0392b;
+    background-color: var(--accent-dark);
 }
 
 .journeyOption:active {
-    transform: scale(0.95);
+    transform: translate(3px, 3px);
+    box-shadow: none;
 }
 
-/* Loading Overlay */
-#loadingOverlay {
-    display: none; /* Hidden by default */
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    z-index: 1000; /* On top of all other elements */
+/* --------------------------------------------------------------------------
+   Bus lines page
+   -------------------------------------------------------------------------- */
+
+#lineContainer, #linesContainer {
+    margin-top: 20px;
+}
+
+.lineItem {
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding: 12px;
+    border: 2px solid var(--line);
+    border-radius: 0;
+    margin-bottom: 10px;
+    background-color: var(--surface);
+    transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
 }
 
-/* Loading GIF */
-#loadingOverlay img {
-    width: 100px; /* Adjust the size as needed */
-    height: 100px;
+.lineItem:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--line);
 }
 
-/* Blur background when loading overlay is active */
-body.loading #content {
-    filter: blur(5px); /* Blur the background */
-    pointer-events: none; /* Disable interactions */
+.lineItem .lineSymbol {
+    margin-right: 15px;
 }
 
+.lineName {
+    font-size: 1.05em;
+    font-weight: bold;
+    color: var(--ink);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+/* Route diagram */
 #stopsContainer {
     display: flex;
     justify-content: left;
     align-items: flex-start;
-    padding: 25px;
+    padding: 25px 10px;
 }
 
 .busLineDiagram {
@@ -495,13 +591,12 @@ body.loading #content {
     flex-direction: column;
     align-items: flex-start;
     position: relative;
-    width: 90%;
-    margin-left: 0 px;
+    width: 100%;
 }
 
 .line {
     width: 8px;
-    background-color: #c0392b;
+    background-color: var(--accent);
     position: absolute;
     top: 0;
     bottom: 0;
@@ -513,64 +608,141 @@ body.loading #content {
     display: flex;
     align-items: center;
     position: relative;
-    margin: 10px 0;
-    background-color: #f9f9f9; /* Light background for box */
-    border: 2px solid #c0392b;
-    border-radius: 10px;
+    margin: 8px 0;
+    background-color: var(--surface);
+    border: 2px solid var(--line);
+    border-radius: 0;
     padding: 10px 15px;
     width: 100%;
-    box-shadow: 2px 2px 2px rgba(0, 0, 0, 0.1);
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.1s, box-shadow 0.1s, background-color 0.2s;
 }
 
 .stopItem:hover {
-    background-color: #eef7ff;
-    box-shadow: 3px 3px 10px rgba(255, 0, 0, 0.2);
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0 var(--line);
 }
 
 .stopCircle {
-    width: 20px;
-    height: 20px;
-    background-color: #c0392b;
-    border-radius: 50%;
+    width: 18px;
+    height: 18px;
+    background-color: var(--accent);
+    border: 2px solid var(--line);
+    border-radius: 0;
     z-index: 2;
     position: relative;
     margin-right: 15px;
-    margin-left: -2.5px;
+    flex-shrink: 0;
 }
 
 .stopLabel {
-    font-size: 16px;
-    color: #333;
+    font-size: 15px;
+    color: var(--ink);
     cursor: pointer;
     text-decoration: none;
 }
 
-.backButton, #themeToggle, #showFlag {
-    background-color: #007bff;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 0px 0px 10px 10px;
-    cursor: pointer;
-    margin: 10px 0;
-    font-size: 14px;
-    transition: opacity 0.3s ease;
+.stopLabel:hover {
+    color: var(--accent);
 }
+
+/* --------------------------------------------------------------------------
+   Loading overlay
+   -------------------------------------------------------------------------- */
+
+#loadingOverlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(22, 21, 15, 0.5);
+    z-index: 1000;
+}
+
+#loadingOverlay img {
+    width: 100px;
+    height: 100px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+body.loading #content {
+    filter: blur(5px);
+    pointer-events: none;
+}
+
+/* --------------------------------------------------------------------------
+   Icons, footer
+   -------------------------------------------------------------------------- */
+
+#icon, .icon {
+    width: 25px;
+    height: 25px;
+    vertical-align: middle;
+}
+
+#legaltext {
+    text-align: left;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 40px;
+    padding-top: 14px;
+    border-top: 2px solid var(--line);
+}
+
+#legaltext a {
+    color: var(--accent);
+}
+
+/* --------------------------------------------------------------------------
+   Mobile
+   -------------------------------------------------------------------------- */
 
 @media only screen and (max-width: 800px) {
-    .backButton, #themeToggle, #showFlag {
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 5px 5px 5px 5px;
-        cursor: pointer;
-        margin: 1;
-        font-size: 14px;
-        transition: opacity 0.3s ease;
+    body {
+        padding: 12px 12px 32px;
     }
-}
 
-.backButton:hover, #themeToggle:hover, #showFlag:hover {
-    background-color: #0056b3;
+    h2 {
+        font-size: 1.15em;
+        padding: 14px 16px;
+    }
+
+    input {
+        width: 100%;
+        margin: 0 0 10px;
+    }
+
+    button {
+        width: 100%;
+    }
+
+    .topbar button,
+    #themeToggle, #showFlag {
+        width: auto;
+        flex: 1;
+    }
+
+    .stopActions button {
+        width: auto;
+    }
+
+    .modal-content {
+        width: 92%;
+    }
+
+    #mapContainer {
+        height: 300px;
+    }
+
+    #journeyOptions {
+        flex-direction: column;
+    }
+
+    .journeyOption {
+        width: 100%;
+    }
 }

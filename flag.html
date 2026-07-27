@@ -6,15 +6,28 @@
     <title>Flag</title>
     <link rel="shortcut icon" href="./img/stop-button.png" type="image/x-icon">
     <link rel="stylesheet" href="./style.css">
+    <style>
+        /* Full-screen bright flag so the driver can spot it */
+        html, body {
+            background-color: #7cf700;
+            max-width: none;
+            min-height: 100vh;
+            margin: 0;
+        }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+        }
+        h2 {
+            border: 4px solid #16150f;
+            border-bottom-width: 10px;
+            font-size: 2em;
+        }
+    </style>
 </head>
-
-<style>
-
-    body{
-        background-color: #7cf700;
-    }
-
-</style>
 
 <body>
     <h2>Stop Flag</h2>

@@ -16,6 +16,11 @@ Features
 
 - **View all Urban Lines:** Shows a list of all urban lines within the municipal territory of Marbella.
 
+Android App
+-----------
+
+A native Android app that wraps the [live page](https://look-a-furry.github.io/urbanosdemarbella/) lives in the [`android/`](./android) folder — see its README for build instructions. Every push touching `android/` also builds a debug APK on GitHub Actions (the **Android APK** workflow), downloadable from the run's artifacts.
+
 Getting Started
 ---------------
 
