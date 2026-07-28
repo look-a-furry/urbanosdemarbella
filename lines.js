@@ -21,13 +21,12 @@ $(document).ready(function() {
         $('#loadingOverlay').hide();      // Hide the overlay
     }
 
-    // Fetch bus lines data from the API
+    // Fetch bus lines data from the API. Cached via script.js, which is loaded
+    // alongside this file - the line list is static, so a cache hit renders the
+    // page without touching the network at all.
     showLoadingOverlay(); // Show loading animation
-    $.ajax({
-        url: LINES_API_URL,
-        type: 'GET',
-        dataType: 'json',
-        success: function(response) {
+    loadCached('cache:lineas:N1', LINES_API_URL,
+        function(response) {
             if (response.status === 'ok') {
                 const lines = response.data;
                 const linesContainer = $('#linesContainer');
@@ -51,12 +50,11 @@ $(document).ready(function() {
             }
             hideLoadingOverlay(); // Hide after all lines are appended
         },
-        error: function(xhr, status, error) {
-            console.error('Error fetching bus lines:', error);
+        function(reason) {
+            console.error('Error fetching bus lines:', reason);
             $('#linesContainer').text('Error fetching bus lines. Please check your connection.');
             hideLoadingOverlay(); // Hide on error
-        }
-    });
+        });
 
     // Function to fetch line details and show the journey selection dialog
     function fetchLineDetails(lineId) {

@@ -10,9 +10,37 @@ var modalState = {
     updateBusLocation: null
 };
 
-// Global variables to track the status of the API and the timeout duration
-var API_TIMEOUT = 15000; // 15 seconds
-var API_URL = 'https://apisvt.avanzagrupo.com/lineas/getTraficosParada';
+// ---------------------------------------------------------------------------
+// API configuration
+//
+// The service exposes the same data through two namespaces: `lineas` (static /
+// schedule backend) and `gmv` (the real-time backend). Since the API fails more
+// often than it succeeds, arrivals are requested from each source in turn until
+// one answers - see fetchBusData(). Every response is wrapped in
+// {status, code, message, data}.
+// ---------------------------------------------------------------------------
+
+var API_BASE = 'https://apisvt.avanzagrupo.com';
+var API_EMPRESA = '0-9999';    // operator selector used for arrivals lookups
+var API_TIMEOUT = 15000;       // total budget for one refresh cycle
+var LEG_TIMEOUT = 5000;        // per-endpoint timeout; 3 legs = the budget above
+
+// Arrival sources, tried in order. All three accept empresa/parada/find and
+// answer with data.traficos[]; only some also return data.parada.
+var ARRIVAL_ENDPOINTS = [
+    API_BASE + '/lineas/getTraficosParada',
+    API_BASE + '/gmv/getTraficosParada',
+    API_BASE + '/gmv/getStop'
+];
+
+var STOPS_URL = API_BASE + '/lineas/getParadas';
+var LINES_URL = API_BASE + '/lineas/getLineas?empresa=10-21';
+
+// Static data (stop list, line colors) barely changes, so it is cached to cut
+// down on calls to an unreliable API. A stale cache is still served when the
+// network fails - outdated colors beat no results at all.
+var CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
 var userZoomLevel = 18; // Default zoom level
 
 // Request bookkeeping. The API is slow and fails often, so a response from a
@@ -31,6 +59,104 @@ var AUTO_REFRESH_MS = 5000;    // delay between a response arriving and the next
 var autoRefreshTimerId = null;
 
 var loadingAnimationId;
+
+// ---------------------------------------------------------------------------
+// localStorage cache for static data
+// ---------------------------------------------------------------------------
+
+// Read a cached entry. Returns {value, stale} or null when nothing is stored.
+// Callers use fresh entries directly and keep stale ones as a fallback for when
+// the request fails.
+function cacheRead(key) {
+    try {
+        var raw = localStorage.getItem(key);
+        if (!raw) return null;
+        var entry = JSON.parse(raw);
+        if (!entry || typeof entry.t !== 'number') return null;
+        return { value: entry.v, stale: (Date.now() - entry.t) > CACHE_TTL_MS };
+    } catch (e) {
+        // Private browsing, disabled storage or corrupted entry
+        return null;
+    }
+}
+
+function cacheWrite(key, value) {
+    try {
+        localStorage.setItem(key, JSON.stringify({ t: Date.now(), v: value }));
+    } catch (e) {
+        // Over quota or storage unavailable - caching is best effort
+    }
+}
+
+// Load a cached JSON endpoint. A fresh cache answers without touching the
+// network; otherwise the request runs and, if it fails, a stale cache is used
+// as a fallback before giving up. `onData` receives the response payload.
+function loadCached(cacheKey, url, onData, onError) {
+    var cached = cacheRead(cacheKey);
+
+    if (cached && !cached.stale) {
+        onData(cached.value);
+        return;
+    }
+
+    $.ajax({
+        url: url,
+        type: 'GET',
+        dataType: 'json',
+        timeout: API_TIMEOUT,
+        success: function (response) {
+            if (response && response.status === 'ok' && response.data) {
+                cacheWrite(cacheKey, response);
+                onData(response);
+            } else if (cached) {
+                onData(cached.value); // serve stale rather than nothing
+            } else if (onError) {
+                onError(responseError(response));
+            }
+        },
+        error: function (xhr, status) {
+            if (cached) {
+                onData(cached.value); // serve stale rather than nothing
+            } else if (onError) {
+                onError(status === 'timeout' ? 'Timeout' : 'Could not fetch data');
+            }
+        }
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Response envelope helpers
+// ---------------------------------------------------------------------------
+
+// The API answers with {status, code, message, data}. A missing-data reply is
+// not necessarily a failure: the real-time endpoints report "no buses due" as a
+// data-level 404, which is a normal state at night or on infrequent lines.
+function isNoDataResponse(response) {
+    if (!response) return false;
+    var code = String(response.code || '');
+    var status = String(response.status || '');
+    return code.indexOf('404') !== -1 || status.indexOf('404') !== -1;
+}
+
+// Human-readable reason from the envelope, preferring the server's own message
+function responseError(response) {
+    if (!response) return 'No response from server';
+    if (response.message) return String(response.message);
+    if (response.code) return 'Error ' + response.code;
+    return 'Invalid or missing data';
+}
+
+// Normalize the differing payload shapes into {parada, traficos}.
+// /lineas/getTraficosParada and /gmv/getStop return a parada object;
+// /gmv/getTraficosParada may omit it, in which case the caller falls back to
+// the stop id that was requested.
+function normalizeArrivals(data) {
+    if (!data) return null;
+    var traficos = data.traficos || data.trafico || [];
+    if (!$.isArray(traficos)) traficos = [traficos];
+    var parada = data.parada || (($.isArray(data.paradas) && data.paradas.length) ? data.paradas[0] : null);
+    return { parada: parada, traficos: traficos };
+}
 
 function showLoadingText() {
     const loadingText = $('#loadingText');
@@ -119,13 +245,9 @@ function searchNearbyStops() {
 
                 var token = ++searchToken;
 
-                // API Call to get all bus stops
-                $.ajax({
-                    url: 'https://apisvt.avanzagrupo.com/lineas/getParadas',
-                    type: 'GET',
-                    dataType: 'json',
-                    timeout: API_TIMEOUT,
-                    success: function (response) {
+                // Stop list (cached - it is the same payload for every search)
+                loadCached('cache:paradas', STOPS_URL,
+                    function (response) {
                         if (token !== searchToken) return; // superseded search
 
                         // Calculate distances and find the nearest 6 stops
@@ -137,7 +259,7 @@ function searchNearbyStops() {
                         // Hide loading text when the search is complete
                         hideLoadingText();
                     },
-                    error: function () {
+                    function () {
                         if (token !== searchToken) return;
 
                         // Display error message
@@ -145,8 +267,7 @@ function searchNearbyStops() {
 
                         // Hide loading text when there's an error
                         hideLoadingText();
-                    }
-                });
+                    });
             },
             function (error) {
                 // Handle Geolocation error
@@ -223,13 +344,9 @@ function searchBusStop() {
     if (stopName) {
         var token = ++searchToken;
 
-        // API Call to get all bus stops
-        $.ajax({
-            url: 'https://apisvt.avanzagrupo.com/lineas/getParadas',
-            type: 'GET',
-            dataType: 'json',
-            timeout: API_TIMEOUT,
-            success: function(response) {
+        // Stop list (cached - it is the same payload for every search)
+        loadCached('cache:paradas', STOPS_URL,
+            function(response) {
                 if (token !== searchToken) return; // superseded search
 
                 // Filter stops based on the entered name
@@ -260,7 +377,7 @@ function searchBusStop() {
                 // Hide loading text when the search is complete
                 hideLoadingText();
             },
-            error: function() {
+            function() {
                 if (token !== searchToken) return;
 
                 // Display error message
@@ -268,8 +385,7 @@ function searchBusStop() {
 
                 // Hide loading text when there's an error
                 hideLoadingText();
-            }
-        });
+            });
     } else {
         // Display message if no name is provided
         showCustomDialog('Please enter a Stop Name for search.');
@@ -285,13 +401,9 @@ function displayMatchingStops(stops, token) {
     hideLoadingText();
     $('#stopInfo').empty();
 
-    // Fetch bus lines color data
-    $.ajax({
-        url: 'https://apisvt.avanzagrupo.com/lineas/getLineas?empresa=10-21',
-        type: 'GET',
-        dataType: 'json',
-        timeout: API_TIMEOUT,
-        success: function (colorResponse) {
+    // Bus line colors (cached - they effectively never change)
+    loadCached('cache:lineas', LINES_URL,
+        function (colorResponse) {
             if (token !== undefined && token !== searchToken) return; // superseded search
 
             // Create a map to store color information based on line id
@@ -302,13 +414,12 @@ function displayMatchingStops(stops, token) {
 
             renderStopList(stops, colorMap);
         },
-        error: function () {
+        function () {
             if (token !== undefined && token !== searchToken) return;
 
             // Color data is cosmetic: still show the stops, defaulting to red
             renderStopList(stops, {});
-        }
-    });
+        });
 }
 
 // Render the list of stop cards with their line symbols
@@ -478,10 +589,28 @@ function removeFavorite(stopId) {
 
 //Function to give a correct format to the dates
 function formatDate(timestamp) {
-    var year = timestamp.substr(0, 4);
-    var month = timestamp.substr(4, 2);
-    var day = timestamp.substr(6, 2);
+    if (!timestamp) return '';
+    var text = String(timestamp);
+    var year = text.substr(0, 4);
+    var month = text.substr(4, 2);
+    var day = text.substr(6, 2);
     return year + '-' + month + '-' + day;
+}
+
+// Format the system clock time that accompanies real-time responses. The field
+// arrives either already punctuated ("14:32:05") or as bare digits ("143205"),
+// so both are accepted.
+function formatTime(horaSistema) {
+    if (!horaSistema) return '';
+    var text = String(horaSistema).trim();
+    if (text.indexOf(':') !== -1) return text;
+    if (/^\d{6}$/.test(text)) {
+        return text.substr(0, 2) + ':' + text.substr(2, 2) + ':' + text.substr(4, 2);
+    }
+    if (/^\d{4}$/.test(text)) {
+        return text.substr(0, 2) + ':' + text.substr(2, 2);
+    }
+    return text;
 }
 
 function fetchBusData() {
@@ -514,49 +643,88 @@ function fetchBusData() {
         setUpdateStatus('Loading stop ' + customStopId + '...', 'status-neutral');
     }
 
+    requestArrivals(customStopId, token, 0);
+}
+
+// One leg of the arrival failover chain. A transport failure or an unusable
+// payload advances to the next endpoint; a usable answer - including a genuine
+// "no buses due" - ends the chain. The whole chain shares a single token, so
+// switching stops still cancels everything that is pending.
+function requestArrivals(stopId, token, index) {
+    if (token !== stopRequestToken) return; // superseded while advancing
+
+    // Every source refused: report the last reason and let the loop continue.
+    if (index >= ARRIVAL_ENDPOINTS.length) {
+        activeStopRequest = null;
+        setUpdateStatus('Error: Could not fetch data', 'status-err');
+        scheduleAutoRefresh();
+        return;
+    }
+
+    var isLastLeg = (index === ARRIVAL_ENDPOINTS.length - 1);
+
+    function fallback(reason) {
+        if (token !== stopRequestToken) return;
+        if (isLastLeg) {
+            activeStopRequest = null;
+            setUpdateStatus('Error: ' + reason, 'status-err');
+            scheduleAutoRefresh();
+        } else {
+            requestArrivals(stopId, token, index + 1);
+        }
+    }
+
     activeStopRequest = $.ajax({
-        url: API_URL + '?empresa=0-9999&parada=' + customStopId + '&find=',
+        url: ARRIVAL_ENDPOINTS[index] +
+            '?empresa=' + encodeURIComponent(API_EMPRESA) +
+            '&parada=' + encodeURIComponent(stopId) + '&find=',
         type: 'GET',
         dataType: 'json',
-        timeout: API_TIMEOUT, // aborts the request instead of just complaining
+        timeout: LEG_TIMEOUT, // aborts the request instead of just complaining
         success: function(response) {
             if (token !== stopRequestToken) return; // stale response, discard
-            activeStopRequest = null;
 
-            // Check if response.data and response.data.parada are not null or undefined
-            if (response.status === 'ok' && response.data && response.data.parada) {
-                renderBusData(customStopId, response);
-            } else {
-                // Handle cases where response data or parada is missing
-                setUpdateStatus('Error: Invalid or missing data', 'status-err');
+            var arrivals = response ? normalizeArrivals(response.data) : null;
+
+            // A data-level 404 means the stop is fine but nothing is due; an
+            // "ok" reply with no departures says the same thing. Both are real
+            // answers, so the chain stops here rather than retrying elsewhere.
+            if (isNoDataResponse(response) ||
+                (response && response.status === 'ok' && arrivals && !arrivals.traficos.length)) {
+                activeStopRequest = null;
+                renderNoBuses(stopId, response);
+                scheduleAutoRefresh();
+                return;
             }
 
-            scheduleAutoRefresh();
+            if (response && response.status === 'ok' && arrivals && arrivals.traficos.length) {
+                activeStopRequest = null;
+                renderBusData(stopId, response, arrivals);
+                scheduleAutoRefresh();
+                return;
+            }
+
+            // Anything else (error envelope, unexpected shape) - try the next
+            // source, surfacing this one's own message if it was the last.
+            fallback(responseError(response));
         },
         error: function(xhr, status) {
             if (token !== stopRequestToken) return; // stale request, discard
-            activeStopRequest = null;
+            if (status === 'abort') return;         // superseded on purpose
 
-            if (status === 'abort') return; // superseded on purpose
-
-            if (status === 'timeout') {
-                setUpdateStatus('Error: Timeout', 'status-err');
-            } else {
-                setUpdateStatus('Error: Could not fetch data', 'status-err');
-            }
-
-            // Failed or not, the response has arrived: arm the next refresh
-            scheduleAutoRefresh();
+            fallback(status === 'timeout' ? 'Timeout' : 'Could not fetch data');
         }
     });
 }
 
 // Render a successful getTraficosParada response into the arrivals table
-function renderBusData(stopId, response) {
-    $('#busTable tbody').empty();
-    $('#stopInfoHeader').text('Stop ID: ' + response.data.parada.cod + ' - ' + response.data.parada.ds);
+function renderBusData(stopId, response, arrivals) {
+    arrivals = arrivals || normalizeArrivals(response.data);
 
-    $.each(response.data.traficos, function(index, bus) {
+    $('#busTable tbody').empty();
+    $('#stopInfoHeader').text(stopHeaderText(stopId, arrivals.parada));
+
+    $.each(arrivals.traficos, function(index, bus) {
         var row = $('<tr>');
         row.append($('<td>').addClass('cellLine').text(bus.coLinea));
         row.append($('<td>').addClass('cellTime').text(bus.quedan));
@@ -577,8 +745,44 @@ function renderBusData(stopId, response) {
     });
 
     loadedStopId = stopId;
-    $('#timestamp').text('Date: ' + formatDate(response.fxSistema) + ' · Last update took ' + response.time + ' ms');
+    $('#timestamp').text(timestampText(response));
     setUpdateStatus('Up to date ✔', 'status-ok');
+}
+
+// The stop is reachable but nothing is due. This is a normal state (late at
+// night, infrequent lines), so it is reported neutrally instead of as an error.
+function renderNoBuses(stopId, response) {
+    $('#busTable tbody').empty();
+    var arrivals = response ? normalizeArrivals(response.data) : null;
+    $('#stopInfoHeader').text(stopHeaderText(stopId, arrivals && arrivals.parada));
+
+    loadedStopId = stopId;
+    $('#timestamp').text(timestampText(response));
+    setUpdateStatus('No buses due', 'status-neutral');
+}
+
+// Header text for the arrivals table. Endpoints that omit the parada object
+// still get a usable header from the requested stop id.
+function stopHeaderText(stopId, parada) {
+    if (parada && parada.cod) {
+        return 'Stop ID: ' + parada.cod + (parada.ds ? ' - ' + parada.ds : '');
+    }
+    return 'Stop ID: ' + stopId;
+}
+
+// "Updated 14:32:05 · 2026-07-27 · 42 ms" - the clock time matters most for
+// live arrivals, so it leads; each part is dropped when the API omits it.
+function timestampText(response) {
+    if (!response) return '';
+    var parts = [];
+    var time = formatTime(response.horaSistema);
+    var date = formatDate(response.fxSistema);
+
+    if (time) parts.push('Updated ' + time);
+    if (date) parts.push(date);
+    if (response.time !== undefined && response.time !== null) parts.push(response.time + ' ms');
+
+    return parts.join(' · ');
 }
 
 // Function to open the modal and display the map. The API status pre-check
