@@ -158,7 +158,36 @@ function normalizeArrivals(data) {
     var traficos = data.traficos || data.trafico || [];
     if (!$.isArray(traficos)) traficos = [traficos];
     var parada = data.parada || (($.isArray(data.paradas) && data.paradas.length) ? data.paradas[0] : null);
-    return { parada: parada, traficos: traficos };
+    return { parada: parada, traficos: sortByArrivalTime(traficos) };
+}
+
+// The API returns arrivals in line order, not arrival order. Parse the
+// "quedan" field ("3 min", "22 min", ...) into minutes so the soonest bus is
+// always first - this is what both the main table and the favorites board
+// display, and the favorites board also relies on this order when it slices
+// down to the first few departures.
+function parseArrivalMinutes(quedan) {
+    if (quedan === undefined || quedan === null) return null;
+    var text = String(quedan).trim();
+    if (!text) return null;
+
+    var match = text.match(/\d+/);
+    if (match) return parseInt(match[0], 10);
+
+    // Non-numeric text ("En parada", "Llegando", ...) means the bus is
+    // already there - more urgent than any counted-down number of minutes.
+    return -1;
+}
+
+function sortByArrivalTime(traficos) {
+    return traficos.slice().sort(function (a, b) {
+        var ma = parseArrivalMinutes(a.quedan);
+        var mb = parseArrivalMinutes(b.quedan);
+        if (ma === null && mb === null) return 0;
+        if (ma === null) return 1;  // unparseable values sort last
+        if (mb === null) return -1;
+        return ma - mb;
+    });
 }
 
 function showLoadingText() {

@@ -262,6 +262,7 @@ th {
     font-family: var(--mono);
     font-weight: 700;
     font-size: 1.1em;
+    white-space: nowrap; /* codes like "L-119" would otherwise break after the hyphen */
 }
 
 .cellTime {
@@ -388,16 +389,19 @@ td a:hover {
 }
 
 .lineSymbol {
-    display: inline-block;
-    width: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
     height: 38px;
+    padding: 0 5px;
     border-radius: 0;
     border: 2px solid var(--line);
     background-color: var(--accent);
     margin-right: 4px;
     margin-bottom: 4px;
     text-align: center;
-    line-height: 34px;
+    white-space: nowrap;
     color: #ffffff;
     font-family: var(--mono);
     font-size: 12px;
@@ -481,6 +485,7 @@ td a:hover {
 }
 
 .favArrivalLine {
+    display: inline-block; /* span is inline by default, so min-width below was a no-op */
     min-width: 34px;
     padding: 2px 6px;
     background-color: var(--accent);
@@ -490,6 +495,8 @@ td a:hover {
     font-size: 0.75em;
     font-weight: 700;
     text-align: center;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .favArrivalTime {
