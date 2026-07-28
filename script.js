@@ -58,6 +58,9 @@ var activeMap = null;          // Leaflet instance living in the map modal
 var AUTO_REFRESH_MS = 5000;    // delay between a response arriving and the next refresh
 var autoRefreshTimerId = null;
 
+var FAVORITES_REFRESH_MS = 30000; // favorites board polls slower - several stops at once
+var FAVORITES_MAX_ARRIVALS = 3;   // departures shown per favorite stop
+
 var loadingAnimationId;
 
 // ---------------------------------------------------------------------------
@@ -333,6 +336,12 @@ function deg2rad(deg) {
     return deg * (Math.PI / 180);
 }
 
+// Metres for anything walkable, kilometres beyond that
+function formatDistance(metres) {
+    if (metres < 1000) return Math.round(metres) + ' m away';
+    return (metres / 1000).toFixed(1) + ' km away';
+}
+
 function searchBusStop() {
     // Show loading text
     showLoadingText();
@@ -466,10 +475,18 @@ function renderStopList(stops, colorMap) {
 
         clickableHeaderRow.append($('<th>').append(headerLink).append($('<div>').addClass('stopActions').append(addToFavoritesButton).append(viewNextBusesButton)));
 
-        var locationLinkRow = $('<tr>').append($('<td>').append($('<a>')
+        var locationCell = $('<td>').append($('<a>')
             .attr('href', 'https://www.google.com/maps?q=' + stop.coordinates[0] + ',' + stop.coordinates[1])
             .addClass('stopCoordinates')
-            .text('View on Map')));
+            .text('View on Map'));
+
+        // Nearby searches already measure how far each stop is - show it.
+        // Name searches leave distance at 0, so nothing is added there.
+        if (stop.distance) {
+            locationCell.append($('<span>').addClass('stopDistance').text(formatDistance(stop.distance)));
+        }
+
+        var locationLinkRow = $('<tr>').append(locationCell);
 
         // Create a new row for line symbols
         var linesRow = $('<tr>');
@@ -528,9 +545,19 @@ function setCookie(name, value, days) {
     document.cookie = name + '=' + value + expires + '; path=/';
 }
 
+// The favorites panel doubles as a live board: every favorite stop is looked up
+// through the same failover chain as the main view, so opening it shows the
+// next departures everywhere at once. Only one panel exists at a time, and its
+// generation counter cancels in-flight lookups when it is closed or reopened.
+var favoritesGeneration = 0;
+var favoritesTimerId = null;
+var favoritesRequests = [];
+
 function showFavorites() {
-    // Close any existing favorites dialog
-    $('.favoritesDialog').remove();
+    // Close any existing favorites dialog (this also cancels its lookups)
+    closeFavorites();
+
+    var generation = ++favoritesGeneration;
 
     // Get favorites from the cookie
     var favorites = JSON.parse(getCookie('favorites')) || [];
@@ -538,6 +565,11 @@ function showFavorites() {
     // Create a custom dialog for displaying favorites
     var favoritesDialog = $('<div>').addClass('favoritesDialog');
     favoritesDialog.append($('<h3>').text('Favorites ★'));
+
+    if (!favorites.length) {
+        favoritesDialog.append($('<p>').addClass('favEmpty')
+            .text('No favorites yet. Search for a stop and use "Add to Favorites".'));
+    }
 
     // Display each favorite stop with a clickable link and remove button
     favorites.forEach(function (favorite) {
@@ -548,7 +580,7 @@ function showFavorites() {
                 event.preventDefault();
 
                 // Close the favorites dialog
-                favoritesDialog.remove();
+                closeFavorites();
 
                 // Fill the "Custom Stop ID" field and update the page
                 $('#stopIdInput').val(favorite.stopId);
@@ -564,18 +596,112 @@ function showFavorites() {
 
         favoriteStopInfo.append($('<h4>').append(favoriteLink));
         favoriteStopInfo.append($('<p>').text('ID: ' + favorite.stopId));
+
+        // Live arrivals for this stop land here once the lookup returns
+        favoriteStopInfo.append(
+            $('<div>').addClass('favArrivals')
+                .attr('data-stop', favorite.stopId)
+                .append($('<span>').addClass('favStatus').text('Loading...'))
+        );
+
         favoriteStopInfo.append(removeButton);
         favoritesDialog.append(favoriteStopInfo);
     });
 
-    // Add a close button
-    var closeButton = $('<button>').text('Close').click(function () {
-        favoritesDialog.remove();
-    });
-    favoritesDialog.append(closeButton);
+    // Refresh and close controls
+    var buttonRow = $('<div>').addClass('favButtons');
+    if (favorites.length) {
+        buttonRow.append($('<button>').text('Refresh').click(function () {
+            loadFavoriteArrivals(favorites, favoritesGeneration);
+        }));
+    }
+    buttonRow.append($('<button>').text('Close').click(closeFavorites));
+    favoritesDialog.append(buttonRow);
 
     // Append the dialog to the body
     $('body').append(favoritesDialog);
+
+    if (favorites.length) {
+        loadFavoriteArrivals(favorites, generation);
+    }
+}
+
+// Tear down the panel and cancel anything it still has in flight.
+function closeFavorites() {
+    favoritesGeneration++;            // invalidates pending lookups
+    clearTimeout(favoritesTimerId);
+    favoritesTimerId = null;
+
+    favoritesRequests.forEach(function (xhr) {
+        if (xhr && xhr.abort) xhr.abort();
+    });
+    favoritesRequests = [];
+
+    $('.favoritesDialog').remove();
+}
+
+// Look up every favorite stop and fill in its row. Lookups run in parallel -
+// the browser caps concurrent connections per host anyway - and the next
+// refresh is armed only once all of them have settled, so a slow API cannot
+// build up a backlog.
+function loadFavoriteArrivals(favorites, generation) {
+    clearTimeout(favoritesTimerId);
+    favoritesRequests = [];
+
+    function isCurrent() {
+        return generation === favoritesGeneration;
+    }
+
+    var pending = favorites.length;
+
+    function settle() {
+        if (!isCurrent()) return;
+        pending--;
+        if (pending <= 0) {
+            // Slower cadence than the single-stop view: this is several
+            // requests at a time and the panel is a glance, not a countdown.
+            favoritesTimerId = setTimeout(function () {
+                if (isCurrent()) loadFavoriteArrivals(favorites, generation);
+            }, FAVORITES_REFRESH_MS);
+        }
+    }
+
+    favorites.forEach(function (favorite) {
+        var row = $('.favArrivals[data-stop="' + favorite.stopId + '"]');
+        row.empty().append($('<span>').addClass('favStatus').text('Loading...'));
+
+        fetchArrivalsChain(favorite.stopId, 0, isCurrent, {
+            request: function (xhr) {
+                favoritesRequests.push(xhr);
+            },
+            arrivals: function (response, arrivals) {
+                renderFavoriteArrivals(row, arrivals.traficos);
+                settle();
+            },
+            noBuses: function () {
+                row.empty().append($('<span>').addClass('favStatus').text('No buses due'));
+                settle();
+            },
+            error: function (reason) {
+                row.empty().append($('<span>').addClass('favStatus favStatusErr').text(reason));
+                settle();
+            }
+        });
+    });
+}
+
+// Render the next few departures for one favorite as compact line/time pairs.
+function renderFavoriteArrivals(row, traficos) {
+    row.empty();
+
+    traficos.slice(0, FAVORITES_MAX_ARRIVALS).forEach(function (bus) {
+        row.append(
+            $('<div>').addClass('favArrival')
+                .append($('<span>').addClass('favArrivalLine').text(bus.coLinea))
+                .append($('<span>').addClass('favArrivalTime').text(bus.quedan))
+                .append($('<span>').addClass('favArrivalDest').text(bus.dsDestino || ''))
+        );
+    });
 }
 
 // Function to remove a favorite from the list
@@ -643,38 +769,38 @@ function fetchBusData() {
         setUpdateStatus('Loading stop ' + customStopId + '...', 'status-neutral');
     }
 
-    requestArrivals(customStopId, token, 0);
+    requestArrivals(customStopId, token);
 }
 
-// One leg of the arrival failover chain. A transport failure or an unusable
-// payload advances to the next endpoint; a usable answer - including a genuine
-// "no buses due" - ends the chain. The whole chain shares a single token, so
-// switching stops still cancels everything that is pending.
-function requestArrivals(stopId, token, index) {
-    if (token !== stopRequestToken) return; // superseded while advancing
+// Ask each arrival source in turn for one stop until one of them answers.
+// A transport failure or an unusable payload advances to the next endpoint; a
+// usable reply - including a genuine "no buses due" - ends the chain.
+//
+// `isCurrent()` is polled before every step so the caller can cancel a chain
+// that has been superseded, and `handlers.request` receives each leg's jqXHR so
+// the caller can abort whatever is in flight. Used by both the main arrivals
+// view and the favorites dashboard.
+function fetchArrivalsChain(stopId, index, isCurrent, handlers) {
+    if (!isCurrent()) return; // superseded while advancing
 
-    // Every source refused: report the last reason and let the loop continue.
+    // Every source refused - report the last reason we saw.
     if (index >= ARRIVAL_ENDPOINTS.length) {
-        activeStopRequest = null;
-        setUpdateStatus('Error: Could not fetch data', 'status-err');
-        scheduleAutoRefresh();
+        handlers.error('Could not fetch data');
         return;
     }
 
     var isLastLeg = (index === ARRIVAL_ENDPOINTS.length - 1);
 
     function fallback(reason) {
-        if (token !== stopRequestToken) return;
+        if (!isCurrent()) return;
         if (isLastLeg) {
-            activeStopRequest = null;
-            setUpdateStatus('Error: ' + reason, 'status-err');
-            scheduleAutoRefresh();
+            handlers.error(reason);
         } else {
-            requestArrivals(stopId, token, index + 1);
+            fetchArrivalsChain(stopId, index + 1, isCurrent, handlers);
         }
     }
 
-    activeStopRequest = $.ajax({
+    var xhr = $.ajax({
         url: ARRIVAL_ENDPOINTS[index] +
             '?empresa=' + encodeURIComponent(API_EMPRESA) +
             '&parada=' + encodeURIComponent(stopId) + '&find=',
@@ -682,7 +808,7 @@ function requestArrivals(stopId, token, index) {
         dataType: 'json',
         timeout: LEG_TIMEOUT, // aborts the request instead of just complaining
         success: function(response) {
-            if (token !== stopRequestToken) return; // stale response, discard
+            if (!isCurrent()) return; // stale response, discard
 
             var arrivals = response ? normalizeArrivals(response.data) : null;
 
@@ -691,16 +817,12 @@ function requestArrivals(stopId, token, index) {
             // answers, so the chain stops here rather than retrying elsewhere.
             if (isNoDataResponse(response) ||
                 (response && response.status === 'ok' && arrivals && !arrivals.traficos.length)) {
-                activeStopRequest = null;
-                renderNoBuses(stopId, response);
-                scheduleAutoRefresh();
+                handlers.noBuses(response);
                 return;
             }
 
             if (response && response.status === 'ok' && arrivals && arrivals.traficos.length) {
-                activeStopRequest = null;
-                renderBusData(stopId, response, arrivals);
-                scheduleAutoRefresh();
+                handlers.arrivals(response, arrivals);
                 return;
             }
 
@@ -709,10 +831,40 @@ function requestArrivals(stopId, token, index) {
             fallback(responseError(response));
         },
         error: function(xhr, status) {
-            if (token !== stopRequestToken) return; // stale request, discard
-            if (status === 'abort') return;         // superseded on purpose
+            if (!isCurrent()) return;       // stale request, discard
+            if (status === 'abort') return; // superseded on purpose
 
             fallback(status === 'timeout' ? 'Timeout' : 'Could not fetch data');
+        }
+    });
+
+    if (handlers.request) handlers.request(xhr);
+}
+
+// Drive the failover chain for the stop shown in the main arrivals view.
+function requestArrivals(stopId, token) {
+    function isCurrent() {
+        return token === stopRequestToken;
+    }
+
+    fetchArrivalsChain(stopId, 0, isCurrent, {
+        request: function(xhr) {
+            activeStopRequest = xhr;
+        },
+        arrivals: function(response, arrivals) {
+            activeStopRequest = null;
+            renderBusData(stopId, response, arrivals);
+            scheduleAutoRefresh();
+        },
+        noBuses: function(response) {
+            activeStopRequest = null;
+            renderNoBuses(stopId, response);
+            scheduleAutoRefresh();
+        },
+        error: function(reason) {
+            activeStopRequest = null;
+            setUpdateStatus('Error: ' + reason, 'status-err');
+            scheduleAutoRefresh();
         }
     });
 }
@@ -745,8 +897,88 @@ function renderBusData(stopId, response, arrivals) {
     });
 
     loadedStopId = stopId;
+    renderStopLines(stopId);
     $('#timestamp').text(timestampText(response));
     setUpdateStatus('Up to date ✔', 'status-ok');
+}
+
+// Look up a stop in the cached stop list. Returns null when the list has not
+// been loaded yet, so callers can degrade quietly instead of blocking on it.
+function findCachedStop(stopId) {
+    var cached = cacheRead('cache:paradas');
+    if (!cached || !cached.value || !cached.value.data) return null;
+
+    var paradas = cached.value.data.paradas || [];
+    for (var i = 0; i < paradas.length; i++) {
+        if (String(paradas[i].cod) === String(stopId)) return paradas[i];
+    }
+    return null;
+}
+
+// Show which lines serve the stop being viewed, as colored badges. Both the
+// stop list and the line colors come from the 24h cache, so this costs nothing
+// on repeat views; the first call warms the cache in the background and the
+// badges simply appear once it is there.
+// The two caches are warmed independently, each at most once per render chain:
+// loadCached calls back synchronously on a hit, so without these guards a stop
+// that is missing from the list would recurse forever. Tracking them separately
+// matters because the stop-list retry must still be allowed to fetch colors.
+function renderStopLines(stopId, opts) {
+    opts = opts || {};
+    var mayFetchStops = opts.mayFetchStops !== false;
+    var mayFetchColors = opts.mayFetchColors !== false;
+
+    var container = $('#stopLines');
+    if (!container.length) return;
+
+    // Re-render once a warmed cache arrives, but only while this stop is still
+    // the one on screen.
+    function retryWith(nextOpts) {
+        return function () {
+            if (String(loadedStopId) === String(stopId)) renderStopLines(stopId, nextOpts);
+        };
+    }
+
+    var stop = findCachedStop(stopId);
+
+    if (!stop) {
+        container.empty();
+        if (mayFetchStops) {
+            // Either the list was never loaded, or this stop is genuinely
+            // absent - warm it and try once more, then leave it badge-less.
+            loadCached('cache:paradas', STOPS_URL,
+                retryWith({ mayFetchStops: false, mayFetchColors: mayFetchColors }),
+                function () { /* badges are optional */ });
+        }
+        return;
+    }
+
+    if (!stop.lines || !stop.lines.length) {
+        container.empty();
+        return;
+    }
+
+    var colors = cacheRead('cache:lineas');
+    var colorMap = {};
+    if (colors && colors.value && $.isArray(colors.value.data)) {
+        colors.value.data.forEach(function (line) {
+            colorMap[line.id] = line.color;
+        });
+    } else if (mayFetchColors) {
+        // Draw in the default color now and repaint once the palette lands.
+        loadCached('cache:lineas', LINES_URL,
+            retryWith({ mayFetchStops: mayFetchStops, mayFetchColors: false }),
+            function () { /* badges are optional */ });
+    }
+
+    container.empty().append($('<span>').addClass('stopLinesLabel').text('Lines here'));
+    stop.lines.forEach(function (line) {
+        container.append(
+            $('<div>').addClass('lineSymbol')
+                .text(line)
+                .css('background-color', colorMap[line] || '#FF0000')
+        );
+    });
 }
 
 // The stop is reachable but nothing is due. This is a normal state (late at
@@ -757,6 +989,7 @@ function renderNoBuses(stopId, response) {
     $('#stopInfoHeader').text(stopHeaderText(stopId, arrivals && arrivals.parada));
 
     loadedStopId = stopId;
+    renderStopLines(stopId);
     $('#timestamp').text(timestampText(response));
     setUpdateStatus('No buses due', 'status-neutral');
 }
